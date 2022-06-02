@@ -6,33 +6,48 @@ namespace BreadTh.ChainRail.Example.Server.Persistance;
 
 internal class Users
 {
-    private readonly OutcomeFactory outcome;
+    private readonly ChainRail chainRail;
 
-    private readonly Dictionary<Guid, User> users = new();
+    private readonly Dictionary<string, User> users = new();
 
-    public Users(OutcomeFactory outcome)
+    public Users(ChainRail chainRail)
     {
-        this.outcome = outcome;
+        this.chainRail = chainRail;
     }
 
-    public ILazyOutcome<Guid> Create(UserRequest request) =>
-        outcome
-            .StartChain()
-            .Then(CheckWithMagicEightball)
-            .Then(() => Validate(request))
-            .Pipe(user =>
-            { 
-                users.Add(user.Id, user);
-                return user.Id;
-            });
+    public ILazyOutcome<User> Create(UserRequest request) =>
+        chainRail
+            .StartChain(request)
+            .Tee(ValidateRequest)
+            .Pipe(TranslateToUser)
+            .Tee(VerifyUsernameAvailable)
+            .Tee(InsertUser);
+
+    public IOutcome<User> GetUserById(string userId)
+    {
+        if(users.TryGetValue(userId, out var user))
+            return chainRail.Success(user);
+        else
+            return chainRail.Error<User>(new EntityNotFoundError("User", "Id", userId));
+    }
+    
+    private User TranslateToUser(UserRequest request) =>
+        new User(Guid.NewGuid().ToString(), request.Username);
+
+    private IOutcome VerifyUsernameAvailable(User candidate) =>
+        users.Values.Any(user => user.Username == candidate.Username)
+        ? chainRail.Error(new UniqueFieldValueAlreadyInUseError("Username", candidate.Username))
+        : chainRail.Success();
+
+    private void InsertUser(User user) =>
+        users.Add(user.Id, user);
 
     public ILazyOutcome<List<User>> GetAll() =>
-        outcome
+        chainRail
             .StartChain()
-            .Then(CheckWithMagicEightball)
             .Then(() => users.Values.ToList());
 
-    private IOutcome<User> Validate(UserRequest request) 
+    private IOutcome ValidateRequest(UserRequest request) 
     {
         const int UsernameMinLength = 5;
 
@@ -40,21 +55,13 @@ internal class Users
 
         if(request.Username is null)
             errors.Add(new MandetoryFieldOmittedError("Username"));
+        
         else if(request.Username.Length < UsernameMinLength)
             errors.Add(new FieldTooShortError("Username", request.Username, UsernameMinLength));
 
         if(errors.Any())
-            return outcome.Error<User>(errors);
-
-        var user = new User(Guid.NewGuid(), request.Username!);
-        return outcome.Success(user);
-    }
-
-    private IOutcome CheckWithMagicEightball() 
-    {
-        if(new Random().Next(0, 100) < 10)
-            return outcome.Error(new UnluckyProcessError());
+            return chainRail.Error(errors);
         else
-            return outcome.Success();
+            return chainRail.Success();
     }
 }

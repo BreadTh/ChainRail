@@ -1,7 +1,7 @@
 ﻿
 namespace BreadTh.ChainRail;
 
-public abstract class AggregateErrorBase : IAggregateError
+public abstract class AggregateErrorBase : IError, IAggregateError
 {
     public List<IError> Inner { get; init; }
     public string Id { get; init; }

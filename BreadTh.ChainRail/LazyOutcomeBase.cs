@@ -4,248 +4,248 @@ namespace BreadTh.ChainRail;
 internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
     where OUTCOME : IOutcome<RESULT>
 {
-    protected readonly IOutcomeFactory factory;
+    protected readonly IChainRailFactory factory;
 
-    protected Func<Task<OUTCOME>> GetTask { get; init; }
+    protected Func<Task<OUTCOME>> LazyInput { get; init; }
     //Thoughts of caching the result of the task, but how to convey to the user that it will only be executed once?
     //Better to keep simple and stupid for now.
 
-    protected LazyOutcomeBase(Func<Task<OUTCOME>> coldTaskGetter, IOutcomeFactory factory)
+    protected LazyOutcomeBase(Func<Task<OUTCOME>> lazyInput, IChainRailFactory factory)
     {
-        GetTask = coldTaskGetter;
+        LazyInput = lazyInput;
         this.factory = factory;
     }
 
     public async Task Execute(Func<Task> onSuccess, Func<IError, Task> onError)
     {
-        var result = await GetTask();
-        await result.Unpack(onSuccess, onError);
+        var result = await LazyInput();
+        await result.Switch(onSuccess, onError);
     }
 
     public async Task Execute(Func<Task> onSuccess, Action<IError> onError)
     {
-        var result = await GetTask();
-        await result.Unpack(onSuccess, onError);
+        var result = await LazyInput();
+        await result.Switch(onSuccess, onError);
     }
 
-    public ILazyOutcome<OUTPUT> Then<OUTPUT>(Func<ILazyOutcome<OUTPUT>> logic) =>
-        new Lazyoutcome<OUTPUT>(
+    public ILazyOutcome<OUTPUT> Then<OUTPUT>(Func<ILazyOutcome<OUTPUT>> next) =>
+        new LazyOutcome<OUTPUT>(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error<OUTPUT>(input.error);
                 else
-                    return await logic().Execute();
+                    return await next().Execute();
             },
             factory
         );
 
-    public ILazyOutcome Then(Func<ILazyOutcome> logic) =>
+    public ILazyOutcome Then(Func<ILazyOutcome> next) =>
         new LazyOutcome(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error(input.error);
                 else
-                    return await logic().Execute();
+                    return await next().Execute();
             },
             factory
         );
 
-    public ILazyOutcome<OUTPUT> Then<OUTPUT>(ILazyOutcome<OUTPUT> logicTask) =>
-        new Lazyoutcome<OUTPUT>(
+    public ILazyOutcome<OUTPUT> Then<OUTPUT>(ILazyOutcome<OUTPUT> next) =>
+        new LazyOutcome<OUTPUT>(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error<OUTPUT>(input.error);
                 else
-                    return await logicTask.Execute();
+                    return await next.Execute();
             },
             factory
         );
 
-    public ILazyOutcome Then(ILazyOutcome logicTask) =>
+    public ILazyOutcome Then(ILazyOutcome next) =>
         new LazyOutcome(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error(input.error);
                 else
-                    return await logicTask.Execute();
+                    return await next.Execute();
             },
             factory
         );
 
 
-    public ILazyOutcome<OUTPUT> Then<OUTPUT>(Func<Task<IOutcome<OUTPUT>>> logicTask) =>
-        new Lazyoutcome<OUTPUT>(
+    public ILazyOutcome<OUTPUT> Then<OUTPUT>(Func<Task<IOutcome<OUTPUT>>> next) =>
+        new LazyOutcome<OUTPUT>(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error<OUTPUT>(input.error);
                 else
-                    return await logicTask();
+                    return await next();
             },
             factory
         );
 
-    public ILazyOutcome Then(Func<Task<IOutcome>> logicTask) =>
+    public ILazyOutcome Then(Func<Task<IOutcome>> next) =>
         new LazyOutcome(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error(input.error);
                 else
-                    return await logicTask();
+                    return await next();
             },
             factory
         );
 
-    public ILazyOutcome<OUTPUT> Then<OUTPUT>(Func<Func<Task<IOutcome<OUTPUT>>>> logicTask) =>
-        new Lazyoutcome<OUTPUT>(
+    public ILazyOutcome<OUTPUT> Then<OUTPUT>(Func<Func<Task<IOutcome<OUTPUT>>>> next) =>
+        new LazyOutcome<OUTPUT>(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error<OUTPUT>(input.error);
                 else
-                    return await logicTask()();
+                    return await next()();
             },
             factory
         );
 
-    public ILazyOutcome Then(Func<Func<Task<IOutcome>>> logicTask) =>
+    public ILazyOutcome Then(Func<Func<Task<IOutcome>>> next) =>
         new LazyOutcome(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error(input.error);
                 else
-                    return await logicTask()();
+                    return await next()();
             },
             factory
         );
 
-    public ILazyOutcome<OUTPUT> Then<OUTPUT>(Func<IOutcome<OUTPUT>> logic) =>
-        new Lazyoutcome<OUTPUT>(
+    public ILazyOutcome<OUTPUT> Then<OUTPUT>(Func<IOutcome<OUTPUT>> next) =>
+        new LazyOutcome<OUTPUT>(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error<OUTPUT>(input.error);
                 else
-                    return logic();
+                    return next();
             },
             factory
         );
 
-    public ILazyOutcome Then(Func<IOutcome> logic) =>
+    public ILazyOutcome Then(Func<IOutcome> next) =>
         new LazyOutcome(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error(input.error);
                 else
-                    return logic();
+                    return next();
             },
             factory
         );
 
-    public ILazyOutcome<OUTPUT> Then<OUTPUT>(Func<Func<IOutcome<OUTPUT>>> logic) =>
-        new Lazyoutcome<OUTPUT>(
+    public ILazyOutcome<OUTPUT> Then<OUTPUT>(Func<Func<IOutcome<OUTPUT>>> next) =>
+        new LazyOutcome<OUTPUT>(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error<OUTPUT>(input.error);
                 else
-                    return logic()();
+                    return next()();
             },
             factory
         );
 
-    public ILazyOutcome Then(Func<Func<IOutcome>> logic) =>
+    public ILazyOutcome Then(Func<Func<IOutcome>> next) =>
         new LazyOutcome(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error(input.error);
                 else
-                    return logic()();
+                    return next()();
             },
             factory
         );
 
-    public ILazyOutcome<OUTPUT> Then<OUTPUT>(Func<Task<OUTPUT>> logicTask) =>
-        new Lazyoutcome<OUTPUT>(
+    public ILazyOutcome<OUTPUT> Then<OUTPUT>(Func<Task<OUTPUT>> next) =>
+        new LazyOutcome<OUTPUT>(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error<OUTPUT>(input.error);
                 else
-                    return factory.Success(await logicTask());
+                    return factory.Success(await next());
             },
             factory
         );
 
-    public ILazyOutcome<OUTPUT> Then<OUTPUT>(Func<Func<Task<OUTPUT>>> logicTask) =>
-        new Lazyoutcome<OUTPUT>(
+    public ILazyOutcome<OUTPUT> Then<OUTPUT>(Func<Func<Task<OUTPUT>>> next) =>
+        new LazyOutcome<OUTPUT>(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error<OUTPUT>(input.error);
                 else
-                    return factory.Success(await logicTask()());
+                    return factory.Success(await next()());
             },
             factory
         );
 
-    public ILazyOutcome<OUTPUT> Then<OUTPUT>(Func<OUTPUT> logic) =>
-        new Lazyoutcome<OUTPUT>(
+    public ILazyOutcome<OUTPUT> Then<OUTPUT>(Func<OUTPUT> next) =>
+        new LazyOutcome<OUTPUT>(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error<OUTPUT>(input.error);
                 else
-                    return factory.Success(logic());
+                    return factory.Success(next());
             },
             factory
         );
 
-    public ILazyOutcome<OUTPUT> Then<OUTPUT>(Func<Func<OUTPUT>> logic) =>
-        new Lazyoutcome<OUTPUT>(
+    public ILazyOutcome<OUTPUT> Then<OUTPUT>(Func<Func<OUTPUT>> next) =>
+        new LazyOutcome<OUTPUT>(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error<OUTPUT>(input.error);
                 else
-                    return factory.Success(logic()());
+                    return factory.Success(next()());
             },
             factory
         );
 
-    public ILazyOutcome ThenInParallel(List<ILazyOutcome> logicTasks) =>
+    public ILazyOutcome ThenInParallel(List<ILazyOutcome> next) =>
         new LazyOutcome(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error(input.error);
 
-                List<Task<IOutcome>> hotTasks = logicTasks
+                List<Task<IOutcome>> hotTasks = next
                     .Select(chain => chain.Execute())
                     .ToList();
 
@@ -268,25 +268,25 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
             factory
         );
 
-    public ILazyOutcome ThenInParallel(ILazyOutcome[] logicTasks) =>
-        ThenInParallel(logicTasks.ToList());
+    public ILazyOutcome ThenInParallel(ILazyOutcome[] next) =>
+        ThenInParallel(next.ToList());
 
 
     public ILazyOutcome<(T1, T2)>
         ThenInParallel<T1, T2>
     (
-        Func<Task<IOutcome<T1>>> func1,
-        Func<Task<IOutcome<T2>>> func2
+        Func<Task<IOutcome<T1>>> next1,
+        Func<Task<IOutcome<T2>>> next2
     ) =>
-        new Lazyoutcome<(T1, T2)>(
+        new LazyOutcome<(T1, T2)>(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error<(T1, T2)>(input.error);
 
                 var (hotTask1, hotTask2) =
-                    (func1(), func2());
+                    (next1(), next2());
 
                 await Task.WhenAll(hotTask1, hotTask2);
 
@@ -310,19 +310,19 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
     public ILazyOutcome<(T1, T2, T3)>
         ThenInParallel<T1, T2, T3>
     (
-        Func<Task<IOutcome<T1>>> func1,
-        Func<Task<IOutcome<T2>>> func2,
-        Func<Task<IOutcome<T3>>> func3
+        Func<Task<IOutcome<T1>>> next1,
+        Func<Task<IOutcome<T2>>> next2,
+        Func<Task<IOutcome<T3>>> next3
     ) =>
-        new Lazyoutcome<(T1, T2, T3)>(
+        new LazyOutcome<(T1, T2, T3)>(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error<(T1, T2, T3)>(input.error);
 
                 var (hotTask1, hotTask2, hotTask3) =
-                    (func1(), func2(), func3());
+                    (next1(), next2(), next3());
 
                 await Task.WhenAll(hotTask1, hotTask2, hotTask3);
 
@@ -348,20 +348,20 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
     public ILazyOutcome<(T1, T2, T3, T4)>
         ThenInParallel<T1, T2, T3, T4>
     (
-        Func<Task<IOutcome<T1>>> func1,
-        Func<Task<IOutcome<T2>>> func2,
-        Func<Task<IOutcome<T3>>> func3,
-        Func<Task<IOutcome<T4>>> func4
+        Func<Task<IOutcome<T1>>> next1,
+        Func<Task<IOutcome<T2>>> next2,
+        Func<Task<IOutcome<T3>>> next3,
+        Func<Task<IOutcome<T4>>> next4
     ) =>
-        new Lazyoutcome<(T1, T2, T3, T4)>(
+        new LazyOutcome<(T1, T2, T3, T4)>(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error<(T1, T2, T3, T4)>(input.error);
 
                 var (hotTask1, hotTask2, hotTask3, hotTask4) =
-                    (func1(), func2(), func3(), func4());
+                    (next1(), next2(), next3(), next4());
 
                 await Task.WhenAll(hotTask1, hotTask2, hotTask3, hotTask4);
 
@@ -389,21 +389,21 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
     public ILazyOutcome<(T1, T2, T3, T4, T5)>
         ThenInParallel<T1, T2, T3, T4, T5>
     (
-        Func<Task<IOutcome<T1>>> func1,
-        Func<Task<IOutcome<T2>>> func2,
-        Func<Task<IOutcome<T3>>> func3,
-        Func<Task<IOutcome<T4>>> func4,
-        Func<Task<IOutcome<T5>>> func5
+        Func<Task<IOutcome<T1>>> next1,
+        Func<Task<IOutcome<T2>>> next2,
+        Func<Task<IOutcome<T3>>> next3,
+        Func<Task<IOutcome<T4>>> next4,
+        Func<Task<IOutcome<T5>>> next5
     ) =>
-        new Lazyoutcome<(T1, T2, T3, T4, T5)>(
+        new LazyOutcome<(T1, T2, T3, T4, T5)>(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error<(T1, T2, T3, T4, T5)>(input.error);
 
                 var (hotTask1, hotTask2, hotTask3, hotTask4, hotTask5) =
-                    (func1(), func2(), func3(), func4(), func5());
+                    (next1(), next2(), next3(), next4(), next5());
 
                 await Task.WhenAll(hotTask1, hotTask2, hotTask3, hotTask4, hotTask5);
 
@@ -433,22 +433,22 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
     public ILazyOutcome<(T1, T2, T3, T4, T5, T6)>
         ThenInParallel<T1, T2, T3, T4, T5, T6>
     (
-        Func<Task<IOutcome<T1>>> func1,
-        Func<Task<IOutcome<T2>>> func2,
-        Func<Task<IOutcome<T3>>> func3,
-        Func<Task<IOutcome<T4>>> func4,
-        Func<Task<IOutcome<T5>>> func5,
-        Func<Task<IOutcome<T6>>> func6
+        Func<Task<IOutcome<T1>>> next1,
+        Func<Task<IOutcome<T2>>> next2,
+        Func<Task<IOutcome<T3>>> next3,
+        Func<Task<IOutcome<T4>>> next4,
+        Func<Task<IOutcome<T5>>> next5,
+        Func<Task<IOutcome<T6>>> next6
     ) =>
-        new Lazyoutcome<(T1, T2, T3, T4, T5, T6)>(
+        new LazyOutcome<(T1, T2, T3, T4, T5, T6)>(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error<(T1, T2, T3, T4, T5, T6)>(input.error);
 
                 var (hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6) =
-                    (func1(), func2(), func3(), func4(), func5(), func6());
+                    (next1(), next2(), next3(), next4(), next5(), next6());
 
                 await Task.WhenAll(hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6);
 
@@ -480,23 +480,23 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
     public ILazyOutcome<(T1, T2, T3, T4, T5, T6, T7)>
         ThenInParallel<T1, T2, T3, T4, T5, T6, T7>
     (
-        Func<Task<IOutcome<T1>>> func1,
-        Func<Task<IOutcome<T2>>> func2,
-        Func<Task<IOutcome<T3>>> func3,
-        Func<Task<IOutcome<T4>>> func4,
-        Func<Task<IOutcome<T5>>> func5,
-        Func<Task<IOutcome<T6>>> func6,
-        Func<Task<IOutcome<T7>>> func7
+        Func<Task<IOutcome<T1>>> next1,
+        Func<Task<IOutcome<T2>>> next2,
+        Func<Task<IOutcome<T3>>> next3,
+        Func<Task<IOutcome<T4>>> next4,
+        Func<Task<IOutcome<T5>>> next5,
+        Func<Task<IOutcome<T6>>> next6,
+        Func<Task<IOutcome<T7>>> next7
     ) =>
-        new Lazyoutcome<(T1, T2, T3, T4, T5, T6, T7)>(
+        new LazyOutcome<(T1, T2, T3, T4, T5, T6, T7)>(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error<(T1, T2, T3, T4, T5, T6, T7)>(input.error);
 
                 var (hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6, hotTask7) =
-                    (func1(), func2(), func3(), func4(), func5(), func6(), func7());
+                    (next1(), next2(), next3(), next4(), next5(), next6(), next7());
 
                 await Task.WhenAll(hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6, hotTask7);
 
@@ -530,24 +530,24 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
     public ILazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8)>
         ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8>
     (
-        Func<Task<IOutcome<T1>>> func1,
-        Func<Task<IOutcome<T2>>> func2,
-        Func<Task<IOutcome<T3>>> func3,
-        Func<Task<IOutcome<T4>>> func4,
-        Func<Task<IOutcome<T5>>> func5,
-        Func<Task<IOutcome<T6>>> func6,
-        Func<Task<IOutcome<T7>>> func7,
-        Func<Task<IOutcome<T8>>> func8
+        Func<Task<IOutcome<T1>>> next1,
+        Func<Task<IOutcome<T2>>> next2,
+        Func<Task<IOutcome<T3>>> next3,
+        Func<Task<IOutcome<T4>>> next4,
+        Func<Task<IOutcome<T5>>> next5,
+        Func<Task<IOutcome<T6>>> next6,
+        Func<Task<IOutcome<T7>>> next7,
+        Func<Task<IOutcome<T8>>> next8
     ) =>
-        new Lazyoutcome<(T1, T2, T3, T4, T5, T6, T7, T8)>(
+        new LazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8)>(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8)>(input.error);
 
                 var (hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6, hotTask7, hotTask8) =
-                    (func1(), func2(), func3(), func4(), func5(), func6(), func7(), func8());
+                    (next1(), next2(), next3(), next4(), next5(), next6(), next7(), next8());
 
                 await Task.WhenAll(hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6, hotTask7, hotTask8);
 
@@ -583,25 +583,25 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
     public ILazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9)>
         ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8, T9>
     (
-        Func<Task<IOutcome<T1>>> func1,
-        Func<Task<IOutcome<T2>>> func2,
-        Func<Task<IOutcome<T3>>> func3,
-        Func<Task<IOutcome<T4>>> func4,
-        Func<Task<IOutcome<T5>>> func5,
-        Func<Task<IOutcome<T6>>> func6,
-        Func<Task<IOutcome<T7>>> func7,
-        Func<Task<IOutcome<T8>>> func8,
-        Func<Task<IOutcome<T9>>> func9
+        Func<Task<IOutcome<T1>>> next1,
+        Func<Task<IOutcome<T2>>> next2,
+        Func<Task<IOutcome<T3>>> next3,
+        Func<Task<IOutcome<T4>>> next4,
+        Func<Task<IOutcome<T5>>> next5,
+        Func<Task<IOutcome<T6>>> next6,
+        Func<Task<IOutcome<T7>>> next7,
+        Func<Task<IOutcome<T8>>> next8,
+        Func<Task<IOutcome<T9>>> next9
     ) =>
-        new Lazyoutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9)>(
+        new LazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9)>(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8, T9)>(input.error);
 
                 var (hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6, hotTask7, hotTask8, hotTask9) =
-                    (func1(), func2(), func3(), func4(), func5(), func6(), func7(), func8(), func9());
+                    (next1(), next2(), next3(), next4(), next5(), next6(), next7(), next8(), next9());
 
                 await Task.WhenAll(hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6, hotTask7, hotTask8, hotTask9);
 
@@ -639,26 +639,26 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
     public ILazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10)>
         ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>
     (
-        Func<Task<IOutcome<T1>>> func1,
-        Func<Task<IOutcome<T2>>> func2,
-        Func<Task<IOutcome<T3>>> func3,
-        Func<Task<IOutcome<T4>>> func4,
-        Func<Task<IOutcome<T5>>> func5,
-        Func<Task<IOutcome<T6>>> func6,
-        Func<Task<IOutcome<T7>>> func7,
-        Func<Task<IOutcome<T8>>> func8,
-        Func<Task<IOutcome<T9>>> func9,
-        Func<Task<IOutcome<T10>>> func10
+        Func<Task<IOutcome<T1>>> next1,
+        Func<Task<IOutcome<T2>>> next2,
+        Func<Task<IOutcome<T3>>> next3,
+        Func<Task<IOutcome<T4>>> next4,
+        Func<Task<IOutcome<T5>>> next5,
+        Func<Task<IOutcome<T6>>> next6,
+        Func<Task<IOutcome<T7>>> next7,
+        Func<Task<IOutcome<T8>>> next8,
+        Func<Task<IOutcome<T9>>> next9,
+        Func<Task<IOutcome<T10>>> next10
     ) =>
-        new Lazyoutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10)>(
+        new LazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10)>(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10)>(input.error);
 
                 var (hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6, hotTask7, hotTask8, hotTask9, hotTask10) =
-                    (func1(), func2(), func3(), func4(), func5(), func6(), func7(), func8(), func9(), func10());
+                    (next1(), next2(), next3(), next4(), next5(), next6(), next7(), next8(), next9(), next10());
 
                 await Task.WhenAll(hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6, hotTask7, hotTask8, hotTask9, hotTask10);
 
@@ -698,27 +698,27 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
     public ILazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11)>
         ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>
     (
-        Func<Task<IOutcome<T1>>> func1,
-        Func<Task<IOutcome<T2>>> func2,
-        Func<Task<IOutcome<T3>>> func3,
-        Func<Task<IOutcome<T4>>> func4,
-        Func<Task<IOutcome<T5>>> func5,
-        Func<Task<IOutcome<T6>>> func6,
-        Func<Task<IOutcome<T7>>> func7,
-        Func<Task<IOutcome<T8>>> func8,
-        Func<Task<IOutcome<T9>>> func9,
-        Func<Task<IOutcome<T10>>> func10,
-        Func<Task<IOutcome<T11>>> func11
+        Func<Task<IOutcome<T1>>> next1,
+        Func<Task<IOutcome<T2>>> next2,
+        Func<Task<IOutcome<T3>>> next3,
+        Func<Task<IOutcome<T4>>> next4,
+        Func<Task<IOutcome<T5>>> next5,
+        Func<Task<IOutcome<T6>>> next6,
+        Func<Task<IOutcome<T7>>> next7,
+        Func<Task<IOutcome<T8>>> next8,
+        Func<Task<IOutcome<T9>>> next9,
+        Func<Task<IOutcome<T10>>> next10,
+        Func<Task<IOutcome<T11>>> next11
     ) =>
-        new Lazyoutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11)>(
+        new LazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11)>(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11)>(input.error);
 
                 var (hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6, hotTask7, hotTask8, hotTask9, hotTask10, hotTask11) =
-                    (func1(), func2(), func3(), func4(), func5(), func6(), func7(), func8(), func9(), func10(), func11());
+                    (next1(), next2(), next3(), next4(), next5(), next6(), next7(), next8(), next9(), next10(), next11());
 
                 await Task.WhenAll(hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6, hotTask7, hotTask8, hotTask9, hotTask10, hotTask11);
 
@@ -760,28 +760,28 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
     public ILazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12)>
         ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>
     (
-        Func<Task<IOutcome<T1>>> func1,
-        Func<Task<IOutcome<T2>>> func2,
-        Func<Task<IOutcome<T3>>> func3,
-        Func<Task<IOutcome<T4>>> func4,
-        Func<Task<IOutcome<T5>>> func5,
-        Func<Task<IOutcome<T6>>> func6,
-        Func<Task<IOutcome<T7>>> func7,
-        Func<Task<IOutcome<T8>>> func8,
-        Func<Task<IOutcome<T9>>> func9,
-        Func<Task<IOutcome<T10>>> func10,
-        Func<Task<IOutcome<T11>>> func11,
-        Func<Task<IOutcome<T12>>> func12
+        Func<Task<IOutcome<T1>>> next1,
+        Func<Task<IOutcome<T2>>> next2,
+        Func<Task<IOutcome<T3>>> next3,
+        Func<Task<IOutcome<T4>>> next4,
+        Func<Task<IOutcome<T5>>> next5,
+        Func<Task<IOutcome<T6>>> next6,
+        Func<Task<IOutcome<T7>>> next7,
+        Func<Task<IOutcome<T8>>> next8,
+        Func<Task<IOutcome<T9>>> next9,
+        Func<Task<IOutcome<T10>>> next10,
+        Func<Task<IOutcome<T11>>> next11,
+        Func<Task<IOutcome<T12>>> next12
     ) =>
-        new Lazyoutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12)>(
+        new LazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12)>(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12)>(input.error);
 
                 var (hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6, hotTask7, hotTask8, hotTask9, hotTask10, hotTask11, hotTask12) =
-                    (func1(), func2(), func3(), func4(), func5(), func6(), func7(), func8(), func9(), func10(), func11(), func12());
+                    (next1(), next2(), next3(), next4(), next5(), next6(), next7(), next8(), next9(), next10(), next11(), next12());
 
                 await Task.WhenAll(hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6, hotTask7, hotTask8, hotTask9, hotTask10, hotTask11, hotTask12);
 
@@ -825,29 +825,29 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
     public ILazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13)>
         ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>
     (
-        Func<Task<IOutcome<T1>>> func1,
-        Func<Task<IOutcome<T2>>> func2,
-        Func<Task<IOutcome<T3>>> func3,
-        Func<Task<IOutcome<T4>>> func4,
-        Func<Task<IOutcome<T5>>> func5,
-        Func<Task<IOutcome<T6>>> func6,
-        Func<Task<IOutcome<T7>>> func7,
-        Func<Task<IOutcome<T8>>> func8,
-        Func<Task<IOutcome<T9>>> func9,
-        Func<Task<IOutcome<T10>>> func10,
-        Func<Task<IOutcome<T11>>> func11,
-        Func<Task<IOutcome<T12>>> func12,
-        Func<Task<IOutcome<T13>>> func13
+        Func<Task<IOutcome<T1>>> next1,
+        Func<Task<IOutcome<T2>>> next2,
+        Func<Task<IOutcome<T3>>> next3,
+        Func<Task<IOutcome<T4>>> next4,
+        Func<Task<IOutcome<T5>>> next5,
+        Func<Task<IOutcome<T6>>> next6,
+        Func<Task<IOutcome<T7>>> next7,
+        Func<Task<IOutcome<T8>>> next8,
+        Func<Task<IOutcome<T9>>> next9,
+        Func<Task<IOutcome<T10>>> next10,
+        Func<Task<IOutcome<T11>>> next11,
+        Func<Task<IOutcome<T12>>> next12,
+        Func<Task<IOutcome<T13>>> next13
     ) =>
-        new Lazyoutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13)>(
+        new LazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13)>(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13)>(input.error);
 
                 var (hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6, hotTask7, hotTask8, hotTask9, hotTask10, hotTask11, hotTask12, hotTask13) =
-                    (func1(), func2(), func3(), func4(), func5(), func6(), func7(), func8(), func9(), func10(), func11(), func12(), func13());
+                    (next1(), next2(), next3(), next4(), next5(), next6(), next7(), next8(), next9(), next10(), next11(), next12(), next13());
 
                 await Task.WhenAll(hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6, hotTask7, hotTask8, hotTask9, hotTask10, hotTask11, hotTask12, hotTask13);
 
@@ -893,30 +893,30 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
     public ILazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14)>
         ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>
     (
-        Func<Task<IOutcome<T1>>> func1,
-        Func<Task<IOutcome<T2>>> func2,
-        Func<Task<IOutcome<T3>>> func3,
-        Func<Task<IOutcome<T4>>> func4,
-        Func<Task<IOutcome<T5>>> func5,
-        Func<Task<IOutcome<T6>>> func6,
-        Func<Task<IOutcome<T7>>> func7,
-        Func<Task<IOutcome<T8>>> func8,
-        Func<Task<IOutcome<T9>>> func9,
-        Func<Task<IOutcome<T10>>> func10,
-        Func<Task<IOutcome<T11>>> func11,
-        Func<Task<IOutcome<T12>>> func12,
-        Func<Task<IOutcome<T13>>> func13,
-        Func<Task<IOutcome<T14>>> func14
+        Func<Task<IOutcome<T1>>> next1,
+        Func<Task<IOutcome<T2>>> next2,
+        Func<Task<IOutcome<T3>>> next3,
+        Func<Task<IOutcome<T4>>> next4,
+        Func<Task<IOutcome<T5>>> next5,
+        Func<Task<IOutcome<T6>>> next6,
+        Func<Task<IOutcome<T7>>> next7,
+        Func<Task<IOutcome<T8>>> next8,
+        Func<Task<IOutcome<T9>>> next9,
+        Func<Task<IOutcome<T10>>> next10,
+        Func<Task<IOutcome<T11>>> next11,
+        Func<Task<IOutcome<T12>>> next12,
+        Func<Task<IOutcome<T13>>> next13,
+        Func<Task<IOutcome<T14>>> next14
     ) =>
-        new Lazyoutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14)>(
+        new LazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14)>(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14)>(input.error);
 
                 var (hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6, hotTask7, hotTask8, hotTask9, hotTask10, hotTask11, hotTask12, hotTask13, hotTask14) =
-                    (func1(), func2(), func3(), func4(), func5(), func6(), func7(), func8(), func9(), func10(), func11(), func12(), func13(), func14());
+                    (next1(), next2(), next3(), next4(), next5(), next6(), next7(), next8(), next9(), next10(), next11(), next12(), next13(), next14());
 
                 await Task.WhenAll(hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6, hotTask7, hotTask8, hotTask9, hotTask10, hotTask11, hotTask12, hotTask13, hotTask14);
 
@@ -964,31 +964,31 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
     public ILazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15)>
         ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>
     (
-        Func<Task<IOutcome<T1>>> func1,
-        Func<Task<IOutcome<T2>>> func2,
-        Func<Task<IOutcome<T3>>> func3,
-        Func<Task<IOutcome<T4>>> func4,
-        Func<Task<IOutcome<T5>>> func5,
-        Func<Task<IOutcome<T6>>> func6,
-        Func<Task<IOutcome<T7>>> func7,
-        Func<Task<IOutcome<T8>>> func8,
-        Func<Task<IOutcome<T9>>> func9,
-        Func<Task<IOutcome<T10>>> func10,
-        Func<Task<IOutcome<T11>>> func11,
-        Func<Task<IOutcome<T12>>> func12,
-        Func<Task<IOutcome<T13>>> func13,
-        Func<Task<IOutcome<T14>>> func14,
-        Func<Task<IOutcome<T15>>> func15
+        Func<Task<IOutcome<T1>>> next1,
+        Func<Task<IOutcome<T2>>> next2,
+        Func<Task<IOutcome<T3>>> next3,
+        Func<Task<IOutcome<T4>>> next4,
+        Func<Task<IOutcome<T5>>> next5,
+        Func<Task<IOutcome<T6>>> next6,
+        Func<Task<IOutcome<T7>>> next7,
+        Func<Task<IOutcome<T8>>> next8,
+        Func<Task<IOutcome<T9>>> next9,
+        Func<Task<IOutcome<T10>>> next10,
+        Func<Task<IOutcome<T11>>> next11,
+        Func<Task<IOutcome<T12>>> next12,
+        Func<Task<IOutcome<T13>>> next13,
+        Func<Task<IOutcome<T14>>> next14,
+        Func<Task<IOutcome<T15>>> next15
     ) =>
-        new Lazyoutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15)>(
+        new LazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15)>(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15)>(input.error);
 
                 var (hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6, hotTask7, hotTask8, hotTask9, hotTask10, hotTask11, hotTask12, hotTask13, hotTask14, hotTask15) =
-                    (func1(), func2(), func3(), func4(), func5(), func6(), func7(), func8(), func9(), func10(), func11(), func12(), func13(), func14(), func15());
+                    (next1(), next2(), next3(), next4(), next5(), next6(), next7(), next8(), next9(), next10(), next11(), next12(), next13(), next14(), next15());
 
                 await Task.WhenAll(hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6, hotTask7, hotTask8, hotTask9, hotTask10, hotTask11, hotTask12, hotTask13, hotTask14, hotTask15);
 
@@ -1038,32 +1038,32 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
     public ILazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16)>
         ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>
     (
-        Func<Task<IOutcome<T1>>> func1,
-        Func<Task<IOutcome<T2>>> func2,
-        Func<Task<IOutcome<T3>>> func3,
-        Func<Task<IOutcome<T4>>> func4,
-        Func<Task<IOutcome<T5>>> func5,
-        Func<Task<IOutcome<T6>>> func6,
-        Func<Task<IOutcome<T7>>> func7,
-        Func<Task<IOutcome<T8>>> func8,
-        Func<Task<IOutcome<T9>>> func9,
-        Func<Task<IOutcome<T10>>> func10,
-        Func<Task<IOutcome<T11>>> func11,
-        Func<Task<IOutcome<T12>>> func12,
-        Func<Task<IOutcome<T13>>> func13,
-        Func<Task<IOutcome<T14>>> func14,
-        Func<Task<IOutcome<T15>>> func15,
-        Func<Task<IOutcome<T16>>> func16
+        Func<Task<IOutcome<T1>>> next1,
+        Func<Task<IOutcome<T2>>> next2,
+        Func<Task<IOutcome<T3>>> next3,
+        Func<Task<IOutcome<T4>>> next4,
+        Func<Task<IOutcome<T5>>> next5,
+        Func<Task<IOutcome<T6>>> next6,
+        Func<Task<IOutcome<T7>>> next7,
+        Func<Task<IOutcome<T8>>> next8,
+        Func<Task<IOutcome<T9>>> next9,
+        Func<Task<IOutcome<T10>>> next10,
+        Func<Task<IOutcome<T11>>> next11,
+        Func<Task<IOutcome<T12>>> next12,
+        Func<Task<IOutcome<T13>>> next13,
+        Func<Task<IOutcome<T14>>> next14,
+        Func<Task<IOutcome<T15>>> next15,
+        Func<Task<IOutcome<T16>>> next16
     ) =>
-        new Lazyoutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16)>(
+        new LazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16)>(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16)>(input.error);
 
                 var (hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6, hotTask7, hotTask8, hotTask9, hotTask10, hotTask11, hotTask12, hotTask13, hotTask14, hotTask15, hotTask16) =
-                    (func1(), func2(), func3(), func4(), func5(), func6(), func7(), func8(), func9(), func10(), func11(), func12(), func13(), func14(), func15(), func16());
+                    (next1(), next2(), next3(), next4(), next5(), next6(), next7(), next8(), next9(), next10(), next11(), next12(), next13(), next14(), next15(), next16());
 
                 await Task.WhenAll(hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6, hotTask7, hotTask8, hotTask9, hotTask10, hotTask11, hotTask12, hotTask13, hotTask14, hotTask15, hotTask16);
 

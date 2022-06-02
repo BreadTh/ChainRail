@@ -1,219 +1,219 @@
 ﻿namespace BreadTh.ChainRail;
 
-internal class Lazyoutcome<VALUE> : LazyOutcomeBase<IOutcome<VALUE>, VALUE>, ILazyOutcome<VALUE>
+internal class LazyOutcome<VALUE> : LazyOutcomeBase<IOutcome<VALUE>, VALUE>, ILazyOutcome<VALUE>
 {
-    public Lazyoutcome(Func<Task<IOutcome<VALUE>>> coldTaskGetter, IOutcomeFactory factory)
-        : base(coldTaskGetter, factory)
+    public LazyOutcome(Func<Task<IOutcome<VALUE>>> lazyInput, IChainRailFactory factory)
+        : base(lazyInput, factory)
     { }
 
     public async Task<IOutcome<VALUE>> Execute() =>
-        await GetTask();
+        await LazyInput();
 
     public async Task Execute(Func<VALUE, Task> onSuccess, Func<IError, Task> onError)
     {
-        var result = await GetTask();
-        await result.Unpack(onSuccess, onError);
+        var input = await LazyInput();
+        await input.Switch(onSuccess, onError);
     }
 
     public async Task Execute(Action<VALUE> onSuccess, Func<IError, Task> onError)
     {
-        var result = await GetTask();
-        await result.Unpack(onSuccess, onError);
+        var input = await LazyInput();
+        await input.Switch(onSuccess, onError);
     }
 
     public async Task Execute(Func<VALUE, Task> onSuccess, Action<IError> onError)
     {
-        var result = await GetTask();
-        await result.Unpack(onSuccess, onError);
+        var input = await LazyInput();
+        await input.Switch(onSuccess, onError);
     }
 
     public async Task Execute(Action<VALUE> onSuccess, Action<IError> onError)
     {
-        var result = await GetTask();
-        result.Unpack(onSuccess, onError);
+        var input = await LazyInput();
+        input.Switch(onSuccess, onError);
     }
 
 
 
-    public ILazyOutcome<OUTPUT> Pipe<OUTPUT>(Func<VALUE, ILazyOutcome<OUTPUT>> nextTask) =>
-        new Lazyoutcome<OUTPUT>(
+    public ILazyOutcome<OUTPUT> Pipe<OUTPUT>(Func<VALUE, ILazyOutcome<OUTPUT>> next) =>
+        new LazyOutcome<OUTPUT>(
             async () =>
             {
-                var result = await GetTask();
-                if (result.error is not null)
-                    return factory.Error<OUTPUT>(result.error!);
+                var input = await LazyInput();
+                if (input.error is not null)
+                    return factory.Error<OUTPUT>(input.error!);
 
-                return await nextTask(result.result!).Execute();
+                return await next(input.result!).Execute();
             },
             factory
         );
 
-    public ILazyOutcome Pipe(Func<VALUE, ILazyOutcome> nextTask) =>
+    public ILazyOutcome Pipe(Func<VALUE, ILazyOutcome> next) =>
         new LazyOutcome(
             async () =>
             {
-                var result = await GetTask();
-                if (result.error is not null)
-                    return factory.Error(result.error!);
+                var input = await LazyInput();
+                if (input.error is not null)
+                    return factory.Error(input.error!);
 
-                return await nextTask(result.result!).Execute();
+                return await next(input.result!).Execute();
             },
             factory
         );
 
-    public ILazyOutcome<OUTPUT> Pipe<OUTPUT>(Func<VALUE, Task<IOutcome<OUTPUT>>> nextTask) =>
-        new Lazyoutcome<OUTPUT>(
+    public ILazyOutcome<OUTPUT> Pipe<OUTPUT>(Func<VALUE, Task<IOutcome<OUTPUT>>> next) =>
+        new LazyOutcome<OUTPUT>(
             async () =>
             {
-                var result = await GetTask();
-                if (result.error is not null)
-                    return factory.Error<OUTPUT>(result.error!);
+                var input = await LazyInput();
+                if (input.error is not null)
+                    return factory.Error<OUTPUT>(input.error!);
 
-                return await nextTask(result.result!);
+                return await next(input.result!);
             },
             factory
         );
 
-    public ILazyOutcome Pipe(Func<VALUE, Task<IOutcome>> nextTask) =>
+    public ILazyOutcome Pipe(Func<VALUE, Task<IOutcome>> next) =>
         new LazyOutcome(
             async () =>
             {
-                var result = await GetTask();
-                if (result.error is not null)
-                    return factory.Error(result.error!);
+                var input = await LazyInput();
+                if (input.error is not null)
+                    return factory.Error(input.error!);
 
-                return await nextTask(result.result!);
+                return await next(input.result!);
             },
             factory
         );
 
-    public ILazyOutcome<OUTPUT> Pipe<OUTPUT>(Func<VALUE, Func<Task<IOutcome<OUTPUT>>>> nextTask) =>
-        new Lazyoutcome<OUTPUT>(
+    public ILazyOutcome<OUTPUT> Pipe<OUTPUT>(Func<VALUE, Func<Task<IOutcome<OUTPUT>>>> next) =>
+        new LazyOutcome<OUTPUT>(
             async () =>
             {
-                var result = await GetTask();
-                if (result.error is not null)
-                    return factory.Error<OUTPUT>(result.error!);
+                var input = await LazyInput();
+                if (input.error is not null)
+                    return factory.Error<OUTPUT>(input.error!);
 
-                return await nextTask(result.result!)();
+                return await next(input.result!)();
             },
             factory
         );
 
-    public ILazyOutcome Pipe(Func<VALUE, Func<Task<IOutcome>>> nextTask) =>
+    public ILazyOutcome Pipe(Func<VALUE, Func<Task<IOutcome>>> next) =>
         new LazyOutcome(
             async () =>
             {
-                var result = await GetTask();
-                if (result.error is not null)
-                    return factory.Error(result.error!);
+                var input = await LazyInput();
+                if (input.error is not null)
+                    return factory.Error(input.error!);
 
-                return await nextTask(result.result!)();
+                return await next(input.result!)();
             },
             factory
         );
 
 
-    public ILazyOutcome<OUTPUT> Pipe<OUTPUT>(Func<VALUE, IOutcome<OUTPUT>> logic) =>
-        new Lazyoutcome<OUTPUT>(
+    public ILazyOutcome<OUTPUT> Pipe<OUTPUT>(Func<VALUE, IOutcome<OUTPUT>> next) =>
+        new LazyOutcome<OUTPUT>(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error<OUTPUT>(input.error);
 
-                return logic(input.result!);
+                return next(input.result!);
             },
             factory
         );
 
-    public ILazyOutcome Pipe(Func<VALUE, IOutcome> logic) =>
+    public ILazyOutcome Pipe(Func<VALUE, IOutcome> next) =>
         new LazyOutcome(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error(input.error);
 
-                return logic(input.result!);
+                return next(input.result!);
             },
             factory
         );
 
-    public ILazyOutcome<OUTPUT> Pipe<OUTPUT>(Func<VALUE, Func<IOutcome<OUTPUT>>> logic) =>
-        new Lazyoutcome<OUTPUT>(
+    public ILazyOutcome<OUTPUT> Pipe<OUTPUT>(Func<VALUE, Func<IOutcome<OUTPUT>>> next) =>
+        new LazyOutcome<OUTPUT>(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error<OUTPUT>(input.error);
 
-                return logic(input.result!)();
+                return next(input.result!)();
             },
             factory
         );
 
-    public ILazyOutcome Pipe(Func<VALUE, Func<IOutcome>> logic) =>
+    public ILazyOutcome Pipe(Func<VALUE, Func<IOutcome>> next) =>
         new LazyOutcome(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error(input.error);
 
-                return logic(input.result!)();
+                return next(input.result!)();
             },
             factory
         );
 
-    public ILazyOutcome<OUTPUT> Pipe<OUTPUT>(Func<VALUE, Task<OUTPUT>> logicTask) =>
-        new Lazyoutcome<OUTPUT>(
+    public ILazyOutcome<OUTPUT> Pipe<OUTPUT>(Func<VALUE, Task<OUTPUT>> next) =>
+        new LazyOutcome<OUTPUT>(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error<OUTPUT>(input.error);
 
-                return factory.Success(await logicTask(input.result!));
+                return factory.Success(await next(input.result!));
             },
             factory
         );
 
-    public ILazyOutcome<OUTPUT> Pipe<OUTPUT>(Func<VALUE, Func<Task<OUTPUT>>> logicTask) =>
-        new Lazyoutcome<OUTPUT>(
+    public ILazyOutcome<OUTPUT> Pipe<OUTPUT>(Func<VALUE, Func<Task<OUTPUT>>> next) =>
+        new LazyOutcome<OUTPUT>(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error<OUTPUT>(input.error);
 
-                return factory.Success(await logicTask(input.result!)());
+                return factory.Success(await next(input.result!)());
             },
             factory
         );
 
-    public ILazyOutcome<OUTPUT> Pipe<OUTPUT>(Func<VALUE, OUTPUT> logic) =>
-        new Lazyoutcome<OUTPUT>(
+    public ILazyOutcome<OUTPUT> Pipe<OUTPUT>(Func<VALUE, OUTPUT> next) =>
+        new LazyOutcome<OUTPUT>(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error<OUTPUT>(input.error);
 
-                return factory.Success(logic(input.result!));
+                return factory.Success(next(input.result!));
             },
             factory
         );
 
-    public ILazyOutcome<OUTPUT> Pipe<OUTPUT>(Func<VALUE, Func<OUTPUT>> logic) =>
-        new Lazyoutcome<OUTPUT>(
+    public ILazyOutcome<OUTPUT> Pipe<OUTPUT>(Func<VALUE, Func<OUTPUT>> next) =>
+        new LazyOutcome<OUTPUT>(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error<OUTPUT>(input.error);
 
-                return factory.Success(logic(input.result!)());
+                return factory.Success(next(input.result!)());
             },
             factory
         );
@@ -222,11 +222,275 @@ internal class Lazyoutcome<VALUE> : LazyOutcomeBase<IOutcome<VALUE>, VALUE>, ILa
         new LazyOutcome(
             async () =>
             {
-                var input = await GetTask();
+                var input = await LazyInput();
                 if (input.error is not null)
                     return factory.Error(input.error);
+                
+                return factory.Success();
+            },
+            factory
+        );
+
+
+
+
+
+    public ILazyOutcome<VALUE> Tee<OUTPUT>(Func<VALUE, ILazyOutcome<OUTPUT>> next) =>
+        new LazyOutcome<VALUE>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.error is not null)
+                    return input;
+
+                var output = await next(input.result!).Execute();
+                
+                if(output.error is not null)
+                    return factory.Error<VALUE>(output.error);
                 else
-                    return factory.Success();
+                    return input;
+            },
+            factory
+        );
+
+    public ILazyOutcome<VALUE> Tee(Func<VALUE, ILazyOutcome> next) =>
+        new LazyOutcome<VALUE>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.error is not null)
+                    return input;
+
+                var output = await next(input.result!).Execute();
+                
+                if (output.error is not null)
+                    return factory.Error<VALUE>(output.error);
+                else
+                    return input;
+            },
+            factory
+        );
+
+    public ILazyOutcome<VALUE> Tee<OUTPUT>(Func<VALUE, Task<IOutcome<OUTPUT>>> next) =>
+        new LazyOutcome<VALUE>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.error is not null)
+                    return input;
+
+                var output = await next(input.result!);
+
+                if (output.error is not null)
+                    return factory.Error<VALUE>(output.error);
+                else
+                    return input;
+            },
+            factory
+        );
+
+    public ILazyOutcome<VALUE> Tee(Func<VALUE, Task<IOutcome>> next) =>
+        new LazyOutcome<VALUE>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.error is not null)
+                    return input;
+
+                var output = await next(input.result!);
+
+                if (output.error is not null)
+                    return factory.Error<VALUE>(output.error);
+                else
+                    return input;
+            },
+            factory
+        );
+
+    public ILazyOutcome<VALUE> Tee<OUTPUT>(Func<VALUE, Func<Task<IOutcome<OUTPUT>>>> next) =>
+        new LazyOutcome<VALUE>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.error is not null)
+                    return input;
+
+                var output = await next(input.result!)();
+
+                if (output.error is not null)
+                    return factory.Error<VALUE>(output.error);
+                else
+                    return input;
+            },
+            factory
+        );
+
+    public ILazyOutcome<VALUE> Tee(Func<VALUE, Func<Task<IOutcome>>> next) =>
+        new LazyOutcome<VALUE>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.error is not null)
+                    return input;
+
+                var output = await next(input.result!)();
+                
+                if (output.error is not null)
+                    return factory.Error<VALUE>(output.error);
+                else
+                    return input;
+            },
+            factory
+        );
+
+
+    public ILazyOutcome<VALUE> Tee<OUTPUT>(Func<VALUE, IOutcome<OUTPUT>> next) =>
+        new LazyOutcome<VALUE>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.error is not null)
+                    return input;
+
+                var output = next(input.result!);
+
+                if (output.error is not null)
+                    return factory.Error<VALUE>(output.error);
+                else
+                    return input;
+            },
+            factory
+        );
+
+    public ILazyOutcome<VALUE> Tee(Func<VALUE, IOutcome> next) =>
+        new LazyOutcome<VALUE>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.error is not null)
+                    return input;
+
+                var output = next(input.result!);
+
+                if (output.error is not null)
+                    return factory.Error<VALUE>(output.error);
+                else
+                    return input;
+            },
+            factory
+        );
+
+    public ILazyOutcome<VALUE> Tee<OUTPUT>(Func<VALUE, Func<IOutcome<OUTPUT>>> next) =>
+        new LazyOutcome<VALUE>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.error is not null)
+                    return input;
+
+                var output = next(input.result!)();
+
+                if (output.error is not null)
+                    return factory.Error<VALUE>(output.error);
+                else
+                    return input;
+            },
+            factory
+        );
+
+    public ILazyOutcome<VALUE> Tee(Func<VALUE, Func<IOutcome>> next) =>
+        new LazyOutcome<VALUE>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.error is not null)
+                    return input;
+
+                var output = next(input.result!)();
+
+                if (output.error is not null)
+                    return factory.Error<VALUE>(output.error);
+                else
+                    return input;
+            },
+            factory
+        );
+
+    public ILazyOutcome<VALUE> Tee<OUTPUT>(Func<VALUE, Task<OUTPUT>> next) =>
+        new LazyOutcome<VALUE>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.error is not null)
+                    return input;
+
+                _ = await next(input.result!);
+                return input;
+            },
+            factory
+        );
+
+    public ILazyOutcome<VALUE> Tee<OUTPUT>(Func<VALUE, Func<Task<OUTPUT>>> next) =>
+        new LazyOutcome<VALUE>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.error is not null)
+                    return input;
+
+                _ = await next(input.result!)();
+
+                return input;
+            },
+            factory
+        );
+
+    public ILazyOutcome<VALUE> Tee<OUTPUT>(Func<VALUE, OUTPUT> next) =>
+        new LazyOutcome<VALUE>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.error is not null)
+                    return input;
+
+                _ = next(input.result!);
+                return input;
+            },
+            factory
+        );
+
+    public ILazyOutcome<VALUE> Tee<OUTPUT>(Func<VALUE, Func<OUTPUT>> next) =>
+        new LazyOutcome<VALUE>(
+            async () =>
+            {
+                var input = await LazyInput();
+
+                if(input.error is not null)
+                    return input;
+
+                _ = next(input.result!)();
+
+                return input;
+                
+
+            },
+            factory
+        );
+
+    public ILazyOutcome<VALUE> Tee(Action<VALUE> next) =>
+        new LazyOutcome<VALUE>(
+            async () =>
+            {
+                var input = await LazyInput();
+
+                if(input.error is not null)
+                    return input;
+
+                next(input.result!);
+
+                return input;
+                
+
             },
             factory
         );

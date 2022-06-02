@@ -1,16 +1,16 @@
 ﻿
 namespace BreadTh.ChainRail;
 
-public class OutcomeFactory : IOutcomeFactory
+public class ChainRail : IChainRailFactory
 {
     public IOutcome Error(IError error) =>
         new Outcome(error);
 
     public IOutcome Error(IError[] errors) =>
-        new Outcome(new OutcomeAggregateError(errors));
+        new Outcome(new AggregateError(errors));
 
     public IOutcome Error(List<IError> errors) =>
-        new Outcome(new OutcomeAggregateError(errors.ToArray()));
+        new Outcome(new AggregateError(errors.ToArray()));
 
     public IOutcome Success() =>
         new Outcome(null);
@@ -20,10 +20,10 @@ public class OutcomeFactory : IOutcomeFactory
         new Outcome<VALUE>(default, error);
 
     public IOutcome<VALUE> Error<VALUE>(IError[] errors) =>
-        new Outcome<VALUE>(default, new OutcomeAggregateError(errors));
+        new Outcome<VALUE>(default, new AggregateError(errors));
 
     public IOutcome<VALUE> Error<VALUE>(List<IError> errors) =>
-        new Outcome<VALUE>(default, new OutcomeAggregateError(errors.ToArray()));
+        new Outcome<VALUE>(default, new AggregateError(errors.ToArray()));
 
     public IOutcome<VALUE> Success<VALUE>(VALUE result) =>
         new Outcome<VALUE>(result, default);
@@ -31,4 +31,7 @@ public class OutcomeFactory : IOutcomeFactory
 
     public ILazyOutcome StartChain() =>
         new LazyOutcome(() => Task.FromResult((IOutcome)new Outcome(null!)), this);
+
+    public ILazyOutcome<VALUE> StartChain<VALUE>(VALUE startValue) =>
+        new LazyOutcome<VALUE>(() => Task.FromResult((IOutcome<VALUE>)new Outcome<VALUE>(startValue, null!)), this);
 }
