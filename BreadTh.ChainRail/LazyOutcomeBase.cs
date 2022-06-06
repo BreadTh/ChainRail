@@ -4,13 +4,13 @@ namespace BreadTh.ChainRail;
 internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
     where OUTCOME : IOutcome<RESULT>
 {
-    protected readonly IChainRailFactory factory;
+    protected readonly IChainRail factory;
 
     protected Func<Task<OUTCOME>> LazyInput { get; init; }
     //Thoughts of caching the result of the task, but how to convey to the user that it will only be executed once?
     //Better to keep simple and stupid for now.
 
-    protected LazyOutcomeBase(Func<Task<OUTCOME>> lazyInput, IChainRailFactory factory)
+    protected LazyOutcomeBase(Func<Task<OUTCOME>> lazyInput, IChainRail factory)
     {
         LazyInput = lazyInput;
         this.factory = factory;

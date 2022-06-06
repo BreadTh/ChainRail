@@ -1,7 +1,7 @@
 ﻿
 namespace BreadTh.ChainRail;
 
-public class ChainRail : IChainRailFactory
+public class ChainRail : IChainRail
 {
     public IOutcome Error(IError error) =>
         new Outcome(error);
