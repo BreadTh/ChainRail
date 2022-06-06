@@ -1,7 +1,7 @@
 ﻿
 namespace BreadTh.ChainRail;
 
-internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
+internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
     where OUTCOME : IOutcome<RESULT>
 {
     protected readonly IChainRail factory;
@@ -10,7 +10,7 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
     //Thoughts of caching the result of the task, but how to convey to the user that it will only be executed once?
     //Better to keep simple and stupid for now.
 
-    protected LazyOutcomeBase(Func<Task<OUTCOME>> lazyInput, IChainRail factory)
+    protected FutureOutcomeBase(Func<Task<OUTCOME>> lazyInput, IChainRail factory)
     {
         LazyInput = lazyInput;
         this.factory = factory;
@@ -28,8 +28,8 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
         await result.Switch(onSuccess, onError);
     }
 
-    public ILazyOutcome<OUTPUT> Then<OUTPUT>(Func<ILazyOutcome<OUTPUT>> next) =>
-        new LazyOutcome<OUTPUT>(
+    public IFutureOutcome<OUTPUT> Then<OUTPUT>(Func<IFutureOutcome<OUTPUT>> next) =>
+        new FutureOutcome<OUTPUT>(
             async () =>
             {
                 var input = await LazyInput();
@@ -41,8 +41,8 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
             factory
         );
 
-    public ILazyOutcome Then(Func<ILazyOutcome> next) =>
-        new LazyOutcome(
+    public IFutureOutcome Then(Func<IFutureOutcome> next) =>
+        new FutureOutcome(
             async () =>
             {
                 var input = await LazyInput();
@@ -54,8 +54,8 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
             factory
         );
 
-    public ILazyOutcome<OUTPUT> Then<OUTPUT>(ILazyOutcome<OUTPUT> next) =>
-        new LazyOutcome<OUTPUT>(
+    public IFutureOutcome<OUTPUT> Then<OUTPUT>(IFutureOutcome<OUTPUT> next) =>
+        new FutureOutcome<OUTPUT>(
             async () =>
             {
                 var input = await LazyInput();
@@ -67,8 +67,8 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
             factory
         );
 
-    public ILazyOutcome Then(ILazyOutcome next) =>
-        new LazyOutcome(
+    public IFutureOutcome Then(IFutureOutcome next) =>
+        new FutureOutcome(
             async () =>
             {
                 var input = await LazyInput();
@@ -81,8 +81,8 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
         );
 
 
-    public ILazyOutcome<OUTPUT> Then<OUTPUT>(Func<Task<IOutcome<OUTPUT>>> next) =>
-        new LazyOutcome<OUTPUT>(
+    public IFutureOutcome<OUTPUT> Then<OUTPUT>(Func<Task<IOutcome<OUTPUT>>> next) =>
+        new FutureOutcome<OUTPUT>(
             async () =>
             {
                 var input = await LazyInput();
@@ -94,8 +94,8 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
             factory
         );
 
-    public ILazyOutcome Then(Func<Task<IOutcome>> next) =>
-        new LazyOutcome(
+    public IFutureOutcome Then(Func<Task<IOutcome>> next) =>
+        new FutureOutcome(
             async () =>
             {
                 var input = await LazyInput();
@@ -107,8 +107,8 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
             factory
         );
 
-    public ILazyOutcome<OUTPUT> Then<OUTPUT>(Func<Func<Task<IOutcome<OUTPUT>>>> next) =>
-        new LazyOutcome<OUTPUT>(
+    public IFutureOutcome<OUTPUT> Then<OUTPUT>(Func<Func<Task<IOutcome<OUTPUT>>>> next) =>
+        new FutureOutcome<OUTPUT>(
             async () =>
             {
                 var input = await LazyInput();
@@ -120,8 +120,8 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
             factory
         );
 
-    public ILazyOutcome Then(Func<Func<Task<IOutcome>>> next) =>
-        new LazyOutcome(
+    public IFutureOutcome Then(Func<Func<Task<IOutcome>>> next) =>
+        new FutureOutcome(
             async () =>
             {
                 var input = await LazyInput();
@@ -133,8 +133,8 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
             factory
         );
 
-    public ILazyOutcome<OUTPUT> Then<OUTPUT>(Func<IOutcome<OUTPUT>> next) =>
-        new LazyOutcome<OUTPUT>(
+    public IFutureOutcome<OUTPUT> Then<OUTPUT>(Func<IOutcome<OUTPUT>> next) =>
+        new FutureOutcome<OUTPUT>(
             async () =>
             {
                 var input = await LazyInput();
@@ -146,8 +146,8 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
             factory
         );
 
-    public ILazyOutcome Then(Func<IOutcome> next) =>
-        new LazyOutcome(
+    public IFutureOutcome Then(Func<IOutcome> next) =>
+        new FutureOutcome(
             async () =>
             {
                 var input = await LazyInput();
@@ -159,8 +159,8 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
             factory
         );
 
-    public ILazyOutcome<OUTPUT> Then<OUTPUT>(Func<Func<IOutcome<OUTPUT>>> next) =>
-        new LazyOutcome<OUTPUT>(
+    public IFutureOutcome<OUTPUT> Then<OUTPUT>(Func<Func<IOutcome<OUTPUT>>> next) =>
+        new FutureOutcome<OUTPUT>(
             async () =>
             {
                 var input = await LazyInput();
@@ -172,8 +172,8 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
             factory
         );
 
-    public ILazyOutcome Then(Func<Func<IOutcome>> next) =>
-        new LazyOutcome(
+    public IFutureOutcome Then(Func<Func<IOutcome>> next) =>
+        new FutureOutcome(
             async () =>
             {
                 var input = await LazyInput();
@@ -185,8 +185,8 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
             factory
         );
 
-    public ILazyOutcome<OUTPUT> Then<OUTPUT>(Func<Task<OUTPUT>> next) =>
-        new LazyOutcome<OUTPUT>(
+    public IFutureOutcome<OUTPUT> Then<OUTPUT>(Func<Task<OUTPUT>> next) =>
+        new FutureOutcome<OUTPUT>(
             async () =>
             {
                 var input = await LazyInput();
@@ -198,8 +198,8 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
             factory
         );
 
-    public ILazyOutcome<OUTPUT> Then<OUTPUT>(Func<Func<Task<OUTPUT>>> next) =>
-        new LazyOutcome<OUTPUT>(
+    public IFutureOutcome<OUTPUT> Then<OUTPUT>(Func<Func<Task<OUTPUT>>> next) =>
+        new FutureOutcome<OUTPUT>(
             async () =>
             {
                 var input = await LazyInput();
@@ -211,8 +211,8 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
             factory
         );
 
-    public ILazyOutcome<OUTPUT> Then<OUTPUT>(Func<OUTPUT> next) =>
-        new LazyOutcome<OUTPUT>(
+    public IFutureOutcome<OUTPUT> Then<OUTPUT>(Func<OUTPUT> next) =>
+        new FutureOutcome<OUTPUT>(
             async () =>
             {
                 var input = await LazyInput();
@@ -224,8 +224,8 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
             factory
         );
 
-    public ILazyOutcome<OUTPUT> Then<OUTPUT>(Func<Func<OUTPUT>> next) =>
-        new LazyOutcome<OUTPUT>(
+    public IFutureOutcome<OUTPUT> Then<OUTPUT>(Func<Func<OUTPUT>> next) =>
+        new FutureOutcome<OUTPUT>(
             async () =>
             {
                 var input = await LazyInput();
@@ -237,8 +237,8 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
             factory
         );
 
-    public ILazyOutcome ThenInParallel(List<ILazyOutcome> next) =>
-        new LazyOutcome(
+    public IFutureOutcome ThenInParallel(List<IFutureOutcome> next) =>
+        new FutureOutcome(
             async () =>
             {
                 var input = await LazyInput();
@@ -268,17 +268,17 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
             factory
         );
 
-    public ILazyOutcome ThenInParallel(ILazyOutcome[] next) =>
+    public IFutureOutcome ThenInParallel(IFutureOutcome[] next) =>
         ThenInParallel(next.ToList());
 
 
-    public ILazyOutcome<(T1, T2)>
+    public IFutureOutcome<(T1, T2)>
         ThenInParallel<T1, T2>
     (
         Func<Task<IOutcome<T1>>> next1,
         Func<Task<IOutcome<T2>>> next2
     ) =>
-        new LazyOutcome<(T1, T2)>(
+        new FutureOutcome<(T1, T2)>(
             async () =>
             {
                 var input = await LazyInput();
@@ -307,14 +307,14 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
             factory
         );
 
-    public ILazyOutcome<(T1, T2, T3)>
+    public IFutureOutcome<(T1, T2, T3)>
         ThenInParallel<T1, T2, T3>
     (
         Func<Task<IOutcome<T1>>> next1,
         Func<Task<IOutcome<T2>>> next2,
         Func<Task<IOutcome<T3>>> next3
     ) =>
-        new LazyOutcome<(T1, T2, T3)>(
+        new FutureOutcome<(T1, T2, T3)>(
             async () =>
             {
                 var input = await LazyInput();
@@ -345,7 +345,7 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
             factory
         );
 
-    public ILazyOutcome<(T1, T2, T3, T4)>
+    public IFutureOutcome<(T1, T2, T3, T4)>
         ThenInParallel<T1, T2, T3, T4>
     (
         Func<Task<IOutcome<T1>>> next1,
@@ -353,7 +353,7 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
         Func<Task<IOutcome<T3>>> next3,
         Func<Task<IOutcome<T4>>> next4
     ) =>
-        new LazyOutcome<(T1, T2, T3, T4)>(
+        new FutureOutcome<(T1, T2, T3, T4)>(
             async () =>
             {
                 var input = await LazyInput();
@@ -386,7 +386,7 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
             factory
         );
 
-    public ILazyOutcome<(T1, T2, T3, T4, T5)>
+    public IFutureOutcome<(T1, T2, T3, T4, T5)>
         ThenInParallel<T1, T2, T3, T4, T5>
     (
         Func<Task<IOutcome<T1>>> next1,
@@ -395,7 +395,7 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
         Func<Task<IOutcome<T4>>> next4,
         Func<Task<IOutcome<T5>>> next5
     ) =>
-        new LazyOutcome<(T1, T2, T3, T4, T5)>(
+        new FutureOutcome<(T1, T2, T3, T4, T5)>(
             async () =>
             {
                 var input = await LazyInput();
@@ -430,7 +430,7 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
             factory
         );
 
-    public ILazyOutcome<(T1, T2, T3, T4, T5, T6)>
+    public IFutureOutcome<(T1, T2, T3, T4, T5, T6)>
         ThenInParallel<T1, T2, T3, T4, T5, T6>
     (
         Func<Task<IOutcome<T1>>> next1,
@@ -440,7 +440,7 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
         Func<Task<IOutcome<T5>>> next5,
         Func<Task<IOutcome<T6>>> next6
     ) =>
-        new LazyOutcome<(T1, T2, T3, T4, T5, T6)>(
+        new FutureOutcome<(T1, T2, T3, T4, T5, T6)>(
             async () =>
             {
                 var input = await LazyInput();
@@ -477,7 +477,7 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
             factory
         );
 
-    public ILazyOutcome<(T1, T2, T3, T4, T5, T6, T7)>
+    public IFutureOutcome<(T1, T2, T3, T4, T5, T6, T7)>
         ThenInParallel<T1, T2, T3, T4, T5, T6, T7>
     (
         Func<Task<IOutcome<T1>>> next1,
@@ -488,7 +488,7 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
         Func<Task<IOutcome<T6>>> next6,
         Func<Task<IOutcome<T7>>> next7
     ) =>
-        new LazyOutcome<(T1, T2, T3, T4, T5, T6, T7)>(
+        new FutureOutcome<(T1, T2, T3, T4, T5, T6, T7)>(
             async () =>
             {
                 var input = await LazyInput();
@@ -527,7 +527,7 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
             factory
         );
 
-    public ILazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8)>
+    public IFutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8)>
         ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8>
     (
         Func<Task<IOutcome<T1>>> next1,
@@ -539,7 +539,7 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
         Func<Task<IOutcome<T7>>> next7,
         Func<Task<IOutcome<T8>>> next8
     ) =>
-        new LazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8)>(
+        new FutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8)>(
             async () =>
             {
                 var input = await LazyInput();
@@ -580,7 +580,7 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
             factory
         );
 
-    public ILazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9)>
+    public IFutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9)>
         ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8, T9>
     (
         Func<Task<IOutcome<T1>>> next1,
@@ -593,7 +593,7 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
         Func<Task<IOutcome<T8>>> next8,
         Func<Task<IOutcome<T9>>> next9
     ) =>
-        new LazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9)>(
+        new FutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9)>(
             async () =>
             {
                 var input = await LazyInput();
@@ -636,7 +636,7 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
             factory
         );
 
-    public ILazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10)>
+    public IFutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10)>
         ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>
     (
         Func<Task<IOutcome<T1>>> next1,
@@ -650,7 +650,7 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
         Func<Task<IOutcome<T9>>> next9,
         Func<Task<IOutcome<T10>>> next10
     ) =>
-        new LazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10)>(
+        new FutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10)>(
             async () =>
             {
                 var input = await LazyInput();
@@ -695,7 +695,7 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
             factory
         );
 
-    public ILazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11)>
+    public IFutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11)>
         ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>
     (
         Func<Task<IOutcome<T1>>> next1,
@@ -710,7 +710,7 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
         Func<Task<IOutcome<T10>>> next10,
         Func<Task<IOutcome<T11>>> next11
     ) =>
-        new LazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11)>(
+        new FutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11)>(
             async () =>
             {
                 var input = await LazyInput();
@@ -757,7 +757,7 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
             factory
         );
 
-    public ILazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12)>
+    public IFutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12)>
         ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>
     (
         Func<Task<IOutcome<T1>>> next1,
@@ -773,7 +773,7 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
         Func<Task<IOutcome<T11>>> next11,
         Func<Task<IOutcome<T12>>> next12
     ) =>
-        new LazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12)>(
+        new FutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12)>(
             async () =>
             {
                 var input = await LazyInput();
@@ -822,7 +822,7 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
             factory
         );
 
-    public ILazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13)>
+    public IFutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13)>
         ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>
     (
         Func<Task<IOutcome<T1>>> next1,
@@ -839,7 +839,7 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
         Func<Task<IOutcome<T12>>> next12,
         Func<Task<IOutcome<T13>>> next13
     ) =>
-        new LazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13)>(
+        new FutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13)>(
             async () =>
             {
                 var input = await LazyInput();
@@ -890,7 +890,7 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
             factory
         );
 
-    public ILazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14)>
+    public IFutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14)>
         ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>
     (
         Func<Task<IOutcome<T1>>> next1,
@@ -908,7 +908,7 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
         Func<Task<IOutcome<T13>>> next13,
         Func<Task<IOutcome<T14>>> next14
     ) =>
-        new LazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14)>(
+        new FutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14)>(
             async () =>
             {
                 var input = await LazyInput();
@@ -961,7 +961,7 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
             factory
         );
 
-    public ILazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15)>
+    public IFutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15)>
         ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>
     (
         Func<Task<IOutcome<T1>>> next1,
@@ -980,7 +980,7 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
         Func<Task<IOutcome<T14>>> next14,
         Func<Task<IOutcome<T15>>> next15
     ) =>
-        new LazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15)>(
+        new FutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15)>(
             async () =>
             {
                 var input = await LazyInput();
@@ -1035,7 +1035,7 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
             factory
         );
 
-    public ILazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16)>
+    public IFutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16)>
         ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>
     (
         Func<Task<IOutcome<T1>>> next1,
@@ -1055,7 +1055,7 @@ internal abstract class LazyOutcomeBase<OUTCOME, RESULT> : ILazyOutcomeBase
         Func<Task<IOutcome<T15>>> next15,
         Func<Task<IOutcome<T16>>> next16
     ) =>
-        new LazyOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16)>(
+        new FutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16)>(
             async () =>
             {
                 var input = await LazyInput();

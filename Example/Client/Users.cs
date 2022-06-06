@@ -12,7 +12,7 @@ internal class Users
         this.chainRail = chainRail;
     }
 
-    internal ILazyOutcome<string> Create(string username) =>
+    internal IFutureOutcome<string> Create(string username) =>
         chainRail
             .StartChain()
             .Then(() => 
@@ -20,7 +20,7 @@ internal class Users
                 .Call<CreateUserResponse>(Method.Post, "/users", new { username = username }))
             .Pipe(response => response.id);
 
-    internal ILazyOutcome<List<User>> GetAll() =>
+    internal IFutureOutcome<List<User>> GetAll() =>
         chainRail
             .StartChain()
             .Then(() => apiClient.Call<List<User>>(Method.Get, "/users"));

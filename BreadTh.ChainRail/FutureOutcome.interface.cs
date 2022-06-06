@@ -1,7 +1,7 @@
 ﻿
 namespace BreadTh.ChainRail;
 
-public interface ILazyOutcome : ILazyOutcomeBase
+public interface IFutureOutcome : IFutureOutcomeBase
 {
     Task<IOutcome> Execute();
 }

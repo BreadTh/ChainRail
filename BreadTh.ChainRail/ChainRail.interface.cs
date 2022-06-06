@@ -9,7 +9,7 @@ public interface IChainRail
     IOutcome<VALUE> Error<VALUE>(IError error);
     IOutcome<VALUE> Error<VALUE>(IError[] errors);
     IOutcome<VALUE> Error<VALUE>(List<IError> errors);
-    ILazyOutcome StartChain();
+    IFutureOutcome StartChain();
     IOutcome Success();
     IOutcome<VALUE> Success<VALUE>(VALUE result);
 }

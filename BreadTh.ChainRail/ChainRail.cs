@@ -29,9 +29,9 @@ public class ChainRail : IChainRail
         new Outcome<VALUE>(result, default);
 
 
-    public ILazyOutcome StartChain() =>
-        new LazyOutcome(() => Task.FromResult((IOutcome)new Outcome(null!)), this);
+    public IFutureOutcome StartChain() =>
+        new FutureOutcome(() => Task.FromResult((IOutcome)new Outcome(null!)), this);
 
-    public ILazyOutcome<VALUE> StartChain<VALUE>(VALUE startValue) =>
-        new LazyOutcome<VALUE>(() => Task.FromResult((IOutcome<VALUE>)new Outcome<VALUE>(startValue, null!)), this);
+    public IFutureOutcome<VALUE> StartChain<VALUE>(VALUE startValue) =>
+        new FutureOutcome<VALUE>(() => Task.FromResult((IOutcome<VALUE>)new Outcome<VALUE>(startValue, null!)), this);
 }

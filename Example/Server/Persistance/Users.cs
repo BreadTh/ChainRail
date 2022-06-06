@@ -15,7 +15,7 @@ internal class Users
         this.chainRail = chainRail;
     }
 
-    public ILazyOutcome<User> Create(UserRequest request) =>
+    public IFutureOutcome<User> Create(UserRequest request) =>
         chainRail
             .StartChain(request)
             .Tee(ValidateRequest)
@@ -42,7 +42,7 @@ internal class Users
     private void InsertUser(User user) =>
         users.Add(user.Id, user);
 
-    public ILazyOutcome<List<User>> GetAll() =>
+    public IFutureOutcome<List<User>> GetAll() =>
         chainRail
             .StartChain()
             .Then(() => users.Values.ToList());
