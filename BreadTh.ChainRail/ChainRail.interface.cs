@@ -1,7 +1,7 @@
 ﻿
 namespace BreadTh.ChainRail;
 
-public interface IChainRailFactory
+public interface IChainRail
 {
     IOutcome Error(IError error);
     IOutcome Error(IError[] errors);

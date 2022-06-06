@@ -3,7 +3,7 @@ namespace BreadTh.ChainRail;
 
 internal class LazyOutcome : LazyOutcomeBase<IOutcome, Empty>, ILazyOutcome
 {
-    internal LazyOutcome(Func<Task<IOutcome>> lazyInput, IChainRailFactory factory)
+    internal LazyOutcome(Func<Task<IOutcome>> lazyInput, IChainRail factory)
         : base(lazyInput, factory)
     { }
 

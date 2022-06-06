@@ -2,7 +2,7 @@
 
 internal class LazyOutcome<VALUE> : LazyOutcomeBase<IOutcome<VALUE>, VALUE>, ILazyOutcome<VALUE>
 {
-    public LazyOutcome(Func<Task<IOutcome<VALUE>>> lazyInput, IChainRailFactory factory)
+    public LazyOutcome(Func<Task<IOutcome<VALUE>>> lazyInput, IChainRail factory)
         : base(lazyInput, factory)
     { }
 

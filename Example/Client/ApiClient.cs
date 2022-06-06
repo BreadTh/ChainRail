@@ -4,9 +4,9 @@ using RestSharp;
 internal class ApiClient 
 {
     readonly RestClient restClient;
-    readonly IChainRailFactory chainRail;
+    readonly IChainRail chainRail;
     readonly Json json;
-    internal ApiClient(RestClient restClient, IChainRailFactory chainRail, Json json)
+    internal ApiClient(RestClient restClient, IChainRail chainRail, Json json)
     {
         this.restClient = restClient;
         this.chainRail = chainRail;
