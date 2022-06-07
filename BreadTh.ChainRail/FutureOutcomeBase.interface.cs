@@ -11,18 +11,18 @@ public interface IFutureOutcomeBase
     //.Then overload combinations
     //  actual value
     //      OUTPUT 
-    //      Nothing             (returns ILazyOutcome instead of ILazyOutcome<T>)
+    //      Nothing             (returns ILazyOutcome instead of IFutureOutcome<T>)
     //      IOutcome<OUTPUT>
-    //      IOutcome            (returns ILazyOutcome instead of ILazyOutcome<T>)
+    //      IOutcome            (returns ILazyOutcome instead of IFutureOutcome<T>)
     //      ILazyOutcome<OUTPUT>
-    //      ILazyOutcome        (returns ILazyOutcome instead of ILazyOutcome<T>)
+    //      ILazyOutcome        (returns ILazyOutcome instead of IFutureOutcome<T>)
     //
     //  value wrapper
     //      Func<T>
     //      Func<Task<T>>
     //      Func<Func<T>>
     //      Func<Func<Task<T>>
-    //      no wrapper          (Only with ILazyOutcome/ILazyOutcome<T> - too easy to accidentally execute
+    //      no wrapper          (Only with IFutureOutcome/IFutureOutcome<T> - too easy to accidentally execute
     //                          early if it allowed for taking e.g. OUTPUT directly)
 
 
@@ -96,7 +96,7 @@ public interface IFutureOutcomeBase
 
     //TODO: When more set in the way it all should work, all combinations
     //  should be mixed with wrappers and values. Until then it's a lot of repeated code to lock into.
-    //  Also, add PipleInParallel with itemized
+    //  Also, add itemized PipleInParallel
     IFutureOutcome<(T1, T2)> ThenInParallel<T1, T2>(Func<Task<IOutcome<T1>>> next1, Func<Task<IOutcome<T2>>> next2);
     IFutureOutcome<(T1, T2, T3)> ThenInParallel<T1, T2, T3>(Func<Task<IOutcome<T1>>> next1, Func<Task<IOutcome<T2>>> next2, Func<Task<IOutcome<T3>>> next3);
     IFutureOutcome<(T1, T2, T3, T4)> ThenInParallel<T1, T2, T3, T4>(Func<Task<IOutcome<T1>>> next1, Func<Task<IOutcome<T2>>> next2, Func<Task<IOutcome<T3>>> next3, Func<Task<IOutcome<T4>>> next4);
