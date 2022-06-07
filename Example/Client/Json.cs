@@ -25,17 +25,20 @@ internal class Json
 
     public IOutcome<MODEL> Parse<MODEL>(string? json) 
     {
+        if(json is null)
+            return chainRail.Error<MODEL>(new JsonParseError(typeof(MODEL), description: "json string is null"));
+
         try
         {
-            var model = JsonConvert.DeserializeObject<MODEL>(json!);
+            var model = JsonConvert.DeserializeObject<MODEL>(json);
             if(model is null)
-                return chainRail.Error<MODEL>(new JsonParseError(typeof(MODEL), json));
+                return chainRail.Error<MODEL>(new JsonParseError(typeof(MODEL), json: json));
             else
                 return chainRail.Success(model);
         }
         catch(JsonException exception) 
         {
-            return chainRail.Error<MODEL>(new JsonParseError(typeof(MODEL), exception, json));
+            return chainRail.Error<MODEL>(new JsonParseError(typeof(MODEL), exception, json: json));
         }
     }
 }
