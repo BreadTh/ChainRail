@@ -2,8 +2,8 @@
 
 public class ErrorFromServer : IError
 {
-    public string Id { get; set; }
-    public string Message { get; set; }
+    public string Id { get; set; } = null!;
+    public string Message { get; set; } = null!;
 
     public List<IError> Inner { get; set; } = new();
 

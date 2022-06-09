@@ -18,7 +18,7 @@ internal class Users
             .Then(() => 
                 apiClient
                 .Call<CreateUserResponse>(Method.Post, "/users", new { username = username }))
-            .Pipe(response => response.id);
+            .Then(response => response.id);
 
     internal IFutureOutcome<List<User>> GetAll() =>
         chainRail

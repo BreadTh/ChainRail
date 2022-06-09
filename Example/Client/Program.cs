@@ -24,7 +24,7 @@ while(true)
             Console.WriteLine();
             await chainRail
                 .StartChain(username)
-                .Pipe(users.Create)
+                .Then(users.Create)
                 .Execute(
                     onError: PrintError,
                     onSuccess: userId => Console.WriteLine($"New user has ID: {userId}")

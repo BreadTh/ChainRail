@@ -19,7 +19,7 @@ internal class Users
         chainRail
             .StartChain(request)
             .Tee(ValidateRequest)
-            .Pipe(TranslateToUser)
+            .Then(TranslateToUser)
             .Tee(VerifyUsernameAvailable)
             .Tee(InsertUser);
 

@@ -16,234 +16,93 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
         this.factory = factory;
     }
 
-    public async Task Execute(Func<Task> onSuccess, Func<IError, Task> onError)
+    async Task IFutureOutcomeBase.Execute(Func<Task> onSuccess, Func<IError, Task> onError)
     {
         var result = await LazyInput();
         await result.Switch(onSuccess, onError);
     }
 
-    public async Task Execute(Func<Task> onSuccess, Action<IError> onError)
+    async Task IFutureOutcomeBase.Execute(Func<Task> onSuccess, Action<IError> onError)
     {
         var result = await LazyInput();
-        await result.Switch(onSuccess, onError);
+        await result.Switch(onSuccess, onError);        
     }
 
-    public IFutureOutcome<OUTPUT> Then<OUTPUT>(Func<IFutureOutcome<OUTPUT>> next) =>
+    private IFutureOutcome<OUTPUT> InnerThen<OUTPUT>(Func<Task<IOutcome<OUTPUT>>> next) =>
         new FutureOutcome<OUTPUT>(
             async () =>
-            {
-                var input = await LazyInput();
-                if (input.error is not null)
-                    return factory.Error<OUTPUT>(input.error);
-                else
-                    return await next().Execute();
-            },
+                await (await LazyInput()).Unify(
+                    onError: error => factory.Error<OUTPUT>(error),
+                    onSuccess: async result => await next()
+                ),
             factory
         );
 
-    public IFutureOutcome Then(Func<IFutureOutcome> next) =>
+    private IFutureOutcome InnerThen(Func<Task<IOutcome>> next) =>
+        new FutureOutcome(
+            async () =>
+                await (await LazyInput()).Unify(
+                    onError: error => factory.Error(error),
+                    onSuccess: async result => await next()
+                ),
+            factory
+        );
+
+
+    IFutureOutcome<OUTPUT> IFutureOutcomeBase.Then<OUTPUT>(IFutureOutcome<OUTPUT> next) => 
+        InnerThen(() => next.Execute());
+
+    IFutureOutcome IFutureOutcomeBase.Then(IFutureOutcome next) => 
+        InnerThen(() => next.Execute());
+
+    IFutureOutcome<OUTPUT> IFutureOutcomeBase.Then<OUTPUT>(Func<IFutureOutcome<OUTPUT>> next) => 
+        InnerThen(() => next().Execute());
+
+    IFutureOutcome IFutureOutcomeBase.Then(Func<IFutureOutcome> next) => 
+        InnerThen(() => next().Execute());
+
+    IFutureOutcome<OUTPUT> IFutureOutcomeBase.Then<OUTPUT>(Func<Task<IOutcome<OUTPUT>>> next) =>
+        InnerThen(next);
+
+    IFutureOutcome IFutureOutcomeBase.Then(Func<Task<IOutcome>> next) =>
+        InnerThen(next);
+
+    IFutureOutcome<OUTPUT> IFutureOutcomeBase.Then<OUTPUT>(Func<IOutcome<OUTPUT>> next) =>
+        InnerThen(() => Task.FromResult(next()));
+
+    IFutureOutcome IFutureOutcomeBase.Then(Func<IOutcome> next) =>
+        InnerThen(() => Task.FromResult(next()));
+
+    IFutureOutcome<OUTPUT> IFutureOutcomeBase.Then<OUTPUT>(Func<Task<OUTPUT>> next) =>
+        InnerThen(async () => factory.Success(await next()));
+
+    IFutureOutcome<OUTPUT> IFutureOutcomeBase.Then<OUTPUT>(Func<OUTPUT> next) =>
+        InnerThen(() => Task.FromResult(factory.Success(next())));
+
+    IFutureOutcome IFutureOutcomeBase.Then<OUTPUT>(Action next) =>
+        InnerThen(() => 
+        {
+            next();
+            return Task.FromResult(factory.Success());
+        });
+
+
+    IFutureOutcome IFutureOutcomeBase.Then<OUTPUT>(Func<Task> next) =>
+        InnerThen(async () =>
+        {
+            await next();
+            return factory.Success();
+        });
+
+
+
+    IFutureOutcome IFutureOutcomeBase.ThenInParallel(IEnumerable<IFutureOutcome> next) =>
         new FutureOutcome(
             async () =>
             {
                 var input = await LazyInput();
-                if (input.error is not null)
-                    return factory.Error(input.error);
-                else
-                    return await next().Execute();
-            },
-            factory
-        );
-
-    public IFutureOutcome<OUTPUT> Then<OUTPUT>(IFutureOutcome<OUTPUT> next) =>
-        new FutureOutcome<OUTPUT>(
-            async () =>
-            {
-                var input = await LazyInput();
-                if (input.error is not null)
-                    return factory.Error<OUTPUT>(input.error);
-                else
-                    return await next.Execute();
-            },
-            factory
-        );
-
-    public IFutureOutcome Then(IFutureOutcome next) =>
-        new FutureOutcome(
-            async () =>
-            {
-                var input = await LazyInput();
-                if (input.error is not null)
-                    return factory.Error(input.error);
-                else
-                    return await next.Execute();
-            },
-            factory
-        );
-
-
-    public IFutureOutcome<OUTPUT> Then<OUTPUT>(Func<Task<IOutcome<OUTPUT>>> next) =>
-        new FutureOutcome<OUTPUT>(
-            async () =>
-            {
-                var input = await LazyInput();
-                if (input.error is not null)
-                    return factory.Error<OUTPUT>(input.error);
-                else
-                    return await next();
-            },
-            factory
-        );
-
-    public IFutureOutcome Then(Func<Task<IOutcome>> next) =>
-        new FutureOutcome(
-            async () =>
-            {
-                var input = await LazyInput();
-                if (input.error is not null)
-                    return factory.Error(input.error);
-                else
-                    return await next();
-            },
-            factory
-        );
-
-    public IFutureOutcome<OUTPUT> Then<OUTPUT>(Func<Func<Task<IOutcome<OUTPUT>>>> next) =>
-        new FutureOutcome<OUTPUT>(
-            async () =>
-            {
-                var input = await LazyInput();
-                if (input.error is not null)
-                    return factory.Error<OUTPUT>(input.error);
-                else
-                    return await next()();
-            },
-            factory
-        );
-
-    public IFutureOutcome Then(Func<Func<Task<IOutcome>>> next) =>
-        new FutureOutcome(
-            async () =>
-            {
-                var input = await LazyInput();
-                if (input.error is not null)
-                    return factory.Error(input.error);
-                else
-                    return await next()();
-            },
-            factory
-        );
-
-    public IFutureOutcome<OUTPUT> Then<OUTPUT>(Func<IOutcome<OUTPUT>> next) =>
-        new FutureOutcome<OUTPUT>(
-            async () =>
-            {
-                var input = await LazyInput();
-                if (input.error is not null)
-                    return factory.Error<OUTPUT>(input.error);
-                else
-                    return next();
-            },
-            factory
-        );
-
-    public IFutureOutcome Then(Func<IOutcome> next) =>
-        new FutureOutcome(
-            async () =>
-            {
-                var input = await LazyInput();
-                if (input.error is not null)
-                    return factory.Error(input.error);
-                else
-                    return next();
-            },
-            factory
-        );
-
-    public IFutureOutcome<OUTPUT> Then<OUTPUT>(Func<Func<IOutcome<OUTPUT>>> next) =>
-        new FutureOutcome<OUTPUT>(
-            async () =>
-            {
-                var input = await LazyInput();
-                if (input.error is not null)
-                    return factory.Error<OUTPUT>(input.error);
-                else
-                    return next()();
-            },
-            factory
-        );
-
-    public IFutureOutcome Then(Func<Func<IOutcome>> next) =>
-        new FutureOutcome(
-            async () =>
-            {
-                var input = await LazyInput();
-                if (input.error is not null)
-                    return factory.Error(input.error);
-                else
-                    return next()();
-            },
-            factory
-        );
-
-    public IFutureOutcome<OUTPUT> Then<OUTPUT>(Func<Task<OUTPUT>> next) =>
-        new FutureOutcome<OUTPUT>(
-            async () =>
-            {
-                var input = await LazyInput();
-                if (input.error is not null)
-                    return factory.Error<OUTPUT>(input.error);
-                else
-                    return factory.Success(await next());
-            },
-            factory
-        );
-
-    public IFutureOutcome<OUTPUT> Then<OUTPUT>(Func<Func<Task<OUTPUT>>> next) =>
-        new FutureOutcome<OUTPUT>(
-            async () =>
-            {
-                var input = await LazyInput();
-                if (input.error is not null)
-                    return factory.Error<OUTPUT>(input.error);
-                else
-                    return factory.Success(await next()());
-            },
-            factory
-        );
-
-    public IFutureOutcome<OUTPUT> Then<OUTPUT>(Func<OUTPUT> next) =>
-        new FutureOutcome<OUTPUT>(
-            async () =>
-            {
-                var input = await LazyInput();
-                if (input.error is not null)
-                    return factory.Error<OUTPUT>(input.error);
-                else
-                    return factory.Success(next());
-            },
-            factory
-        );
-
-    public IFutureOutcome<OUTPUT> Then<OUTPUT>(Func<Func<OUTPUT>> next) =>
-        new FutureOutcome<OUTPUT>(
-            async () =>
-            {
-                var input = await LazyInput();
-                if (input.error is not null)
-                    return factory.Error<OUTPUT>(input.error);
-                else
-                    return factory.Success(next()());
-            },
-            factory
-        );
-
-    public IFutureOutcome ThenInParallel(List<IFutureOutcome> next) =>
-        new FutureOutcome(
-            async () =>
-            {
-                var input = await LazyInput();
-                if (input.error is not null)
-                    return factory.Error(input.error);
+                if (input.Error is not null)
+                    return factory.Error(input.Error);
 
                 List<Task<IOutcome>> hotTasks = next
                     .Select(chain => chain.Execute())
@@ -256,8 +115,8 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
                     .ToList();
 
                 List<IError> errors = results
-                    .Where(x => x.error is not null)
-                    .Select(x => x.error!)
+                    .Where(x => x.Error is not null)
+                    .Select(x => x.Error!)
                     .ToList();
 
                 if (errors.Any())
@@ -268,12 +127,40 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
             factory
         );
 
-    public IFutureOutcome ThenInParallel(IFutureOutcome[] next) =>
-        ThenInParallel(next.ToList());
 
+    IFutureOutcome<IEnumerable<OUTPUT>> IFutureOutcomeBase.ThenInParallel<OUTPUT>(IEnumerable<IFutureOutcome<OUTPUT>> next) =>
+        new FutureOutcome<IEnumerable<OUTPUT>>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.Error is not null)
+                    return factory.Error<IEnumerable<OUTPUT>>(input.Error);
 
-    public IFutureOutcome<(T1, T2)>
-        ThenInParallel<T1, T2>
+                List<Task<IOutcome<OUTPUT>>> hotTasks = next
+                    .Select(chain => chain.Execute())
+                    .ToList();
+
+                await Task.WhenAll(hotTasks);
+
+                List<IOutcome<OUTPUT>> results = hotTasks
+                    .Select(task => task.Result)
+                    .ToList();
+
+                List<IError> errors = results
+                    .Where(x => x.Error is not null)
+                    .Select(x => x.Error!)
+                    .ToList();
+
+                if (errors.Any())
+                    return factory.Error<IEnumerable<OUTPUT>>(errors);
+                else
+                    return factory.Success(results.Select(x => x.Result!));
+            },
+            factory
+        );
+
+    IFutureOutcome<(T1, T2)>
+        IFutureOutcomeBase.ThenInParallel<T1, T2>
     (
         Func<Task<IOutcome<T1>>> next1,
         Func<Task<IOutcome<T2>>> next2
@@ -282,8 +169,8 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
             async () =>
             {
                 var input = await LazyInput();
-                if (input.error is not null)
-                    return factory.Error<(T1, T2)>(input.error);
+                if (input.Error is not null)
+                    return factory.Error<(T1, T2)>(input.Error);
 
                 var (hotTask1, hotTask2) =
                     (next1(), next2());
@@ -292,23 +179,23 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
 
                 var errors = new List<IError>()
                 {
-                    hotTask1.Result.error!,
-                    hotTask2.Result.error!
+                    hotTask1.Result.Error!,
+                    hotTask2.Result.Error!
                 }.Where(error => error is not null);
 
                 if (errors.Any())
                     return factory.Error<(T1, T2)>(errors.ToList());
                 else
                     return factory.Success((
-                        hotTask1.Result.result!,
-                        hotTask2.Result.result!
+                        hotTask1.Result.Result!,
+                        hotTask2.Result.Result!
                     ));
             },
             factory
         );
 
-    public IFutureOutcome<(T1, T2, T3)>
-        ThenInParallel<T1, T2, T3>
+    IFutureOutcome<(T1, T2, T3)>
+        IFutureOutcomeBase.ThenInParallel<T1, T2, T3>
     (
         Func<Task<IOutcome<T1>>> next1,
         Func<Task<IOutcome<T2>>> next2,
@@ -318,8 +205,8 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
             async () =>
             {
                 var input = await LazyInput();
-                if (input.error is not null)
-                    return factory.Error<(T1, T2, T3)>(input.error);
+                if (input.Error is not null)
+                    return factory.Error<(T1, T2, T3)>(input.Error);
 
                 var (hotTask1, hotTask2, hotTask3) =
                     (next1(), next2(), next3());
@@ -328,25 +215,25 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
 
                 var errors = new List<IError>()
                 {
-                    hotTask1.Result.error!,
-                    hotTask2.Result.error!,
-                    hotTask3.Result.error!
+                    hotTask1.Result.Error!,
+                    hotTask2.Result.Error!,
+                    hotTask3.Result.Error!
                 }.Where(error => error is not null);
 
                 if (errors.Any())
                     return factory.Error<(T1, T2, T3)>(errors.ToList());
                 else
                     return factory.Success((
-                        hotTask1.Result.result!,
-                        hotTask2.Result.result!,
-                        hotTask3.Result.result!
+                        hotTask1.Result.Result!,
+                        hotTask2.Result.Result!,
+                        hotTask3.Result.Result!
                     ));
             },
             factory
         );
 
-    public IFutureOutcome<(T1, T2, T3, T4)>
-        ThenInParallel<T1, T2, T3, T4>
+    IFutureOutcome<(T1, T2, T3, T4)>
+        IFutureOutcomeBase.ThenInParallel<T1, T2, T3, T4>
     (
         Func<Task<IOutcome<T1>>> next1,
         Func<Task<IOutcome<T2>>> next2,
@@ -357,8 +244,8 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
             async () =>
             {
                 var input = await LazyInput();
-                if (input.error is not null)
-                    return factory.Error<(T1, T2, T3, T4)>(input.error);
+                if (input.Error is not null)
+                    return factory.Error<(T1, T2, T3, T4)>(input.Error);
 
                 var (hotTask1, hotTask2, hotTask3, hotTask4) =
                     (next1(), next2(), next3(), next4());
@@ -367,27 +254,27 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
 
                 var errors = new List<IError>()
                 {
-                    hotTask1.Result.error!,
-                    hotTask2.Result.error!,
-                    hotTask3.Result.error!,
-                    hotTask4.Result.error!
+                    hotTask1.Result.Error!,
+                    hotTask2.Result.Error!,
+                    hotTask3.Result.Error!,
+                    hotTask4.Result.Error!
                 }.Where(error => error is not null);
 
                 if (errors.Any())
                     return factory.Error<(T1, T2, T3, T4)>(errors.ToList());
                 else
                     return factory.Success((
-                        hotTask1.Result.result!,
-                        hotTask2.Result.result!,
-                        hotTask3.Result.result!,
-                        hotTask4.Result.result!
+                        hotTask1.Result.Result!,
+                        hotTask2.Result.Result!,
+                        hotTask3.Result.Result!,
+                        hotTask4.Result.Result!
                     ));
             },
             factory
         );
 
-    public IFutureOutcome<(T1, T2, T3, T4, T5)>
-        ThenInParallel<T1, T2, T3, T4, T5>
+    IFutureOutcome<(T1, T2, T3, T4, T5)>
+        IFutureOutcomeBase.ThenInParallel<T1, T2, T3, T4, T5>
     (
         Func<Task<IOutcome<T1>>> next1,
         Func<Task<IOutcome<T2>>> next2,
@@ -399,8 +286,8 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
             async () =>
             {
                 var input = await LazyInput();
-                if (input.error is not null)
-                    return factory.Error<(T1, T2, T3, T4, T5)>(input.error);
+                if (input.Error is not null)
+                    return factory.Error<(T1, T2, T3, T4, T5)>(input.Error);
 
                 var (hotTask1, hotTask2, hotTask3, hotTask4, hotTask5) =
                     (next1(), next2(), next3(), next4(), next5());
@@ -409,29 +296,29 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
 
                 var errors = new List<IError>()
                 {
-                    hotTask1.Result.error!,
-                    hotTask2.Result.error!,
-                    hotTask3.Result.error!,
-                    hotTask4.Result.error!,
-                    hotTask5.Result.error!
+                    hotTask1.Result.Error!,
+                    hotTask2.Result.Error!,
+                    hotTask3.Result.Error!,
+                    hotTask4.Result.Error!,
+                    hotTask5.Result.Error!
                 }.Where(error => error is not null);
 
                 if (errors.Any())
                     return factory.Error<(T1, T2, T3, T4, T5)>(errors.ToList());
                 else
                     return factory.Success((
-                        hotTask1.Result.result!,
-                        hotTask2.Result.result!,
-                        hotTask3.Result.result!,
-                        hotTask4.Result.result!,
-                        hotTask5.Result.result!
+                        hotTask1.Result.Result!,
+                        hotTask2.Result.Result!,
+                        hotTask3.Result.Result!,
+                        hotTask4.Result.Result!,
+                        hotTask5.Result.Result!
                     ));
             },
             factory
         );
 
-    public IFutureOutcome<(T1, T2, T3, T4, T5, T6)>
-        ThenInParallel<T1, T2, T3, T4, T5, T6>
+    IFutureOutcome<(T1, T2, T3, T4, T5, T6)>
+        IFutureOutcomeBase.ThenInParallel<T1, T2, T3, T4, T5, T6>
     (
         Func<Task<IOutcome<T1>>> next1,
         Func<Task<IOutcome<T2>>> next2,
@@ -444,8 +331,8 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
             async () =>
             {
                 var input = await LazyInput();
-                if (input.error is not null)
-                    return factory.Error<(T1, T2, T3, T4, T5, T6)>(input.error);
+                if (input.Error is not null)
+                    return factory.Error<(T1, T2, T3, T4, T5, T6)>(input.Error);
 
                 var (hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6) =
                     (next1(), next2(), next3(), next4(), next5(), next6());
@@ -454,31 +341,31 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
 
                 var errors = new List<IError>()
                 {
-                    hotTask1.Result.error!,
-                    hotTask2.Result.error!,
-                    hotTask3.Result.error!,
-                    hotTask4.Result.error!,
-                    hotTask5.Result.error!,
-                    hotTask6.Result.error!
+                    hotTask1.Result.Error!,
+                    hotTask2.Result.Error!,
+                    hotTask3.Result.Error!,
+                    hotTask4.Result.Error!,
+                    hotTask5.Result.Error!,
+                    hotTask6.Result.Error!
                 }.Where(error => error is not null);
 
                 if (errors.Any())
                     return factory.Error<(T1, T2, T3, T4, T5, T6)>(errors.ToList());
                 else
                     return factory.Success((
-                        hotTask1.Result.result!,
-                        hotTask2.Result.result!,
-                        hotTask3.Result.result!,
-                        hotTask4.Result.result!,
-                        hotTask5.Result.result!,
-                        hotTask6.Result.result!
+                        hotTask1.Result.Result!,
+                        hotTask2.Result.Result!,
+                        hotTask3.Result.Result!,
+                        hotTask4.Result.Result!,
+                        hotTask5.Result.Result!,
+                        hotTask6.Result.Result!
                     ));
             },
             factory
         );
 
-    public IFutureOutcome<(T1, T2, T3, T4, T5, T6, T7)>
-        ThenInParallel<T1, T2, T3, T4, T5, T6, T7>
+    IFutureOutcome<(T1, T2, T3, T4, T5, T6, T7)>
+        IFutureOutcomeBase.ThenInParallel<T1, T2, T3, T4, T5, T6, T7>
     (
         Func<Task<IOutcome<T1>>> next1,
         Func<Task<IOutcome<T2>>> next2,
@@ -492,8 +379,8 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
             async () =>
             {
                 var input = await LazyInput();
-                if (input.error is not null)
-                    return factory.Error<(T1, T2, T3, T4, T5, T6, T7)>(input.error);
+                if (input.Error is not null)
+                    return factory.Error<(T1, T2, T3, T4, T5, T6, T7)>(input.Error);
 
                 var (hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6, hotTask7) =
                     (next1(), next2(), next3(), next4(), next5(), next6(), next7());
@@ -502,33 +389,33 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
 
                 var errors = new List<IError>()
                 {
-                    hotTask1.Result.error!,
-                    hotTask2.Result.error!,
-                    hotTask3.Result.error!,
-                    hotTask4.Result.error!,
-                    hotTask5.Result.error!,
-                    hotTask6.Result.error!,
-                    hotTask7.Result.error!
+                    hotTask1.Result.Error!,
+                    hotTask2.Result.Error!,
+                    hotTask3.Result.Error!,
+                    hotTask4.Result.Error!,
+                    hotTask5.Result.Error!,
+                    hotTask6.Result.Error!,
+                    hotTask7.Result.Error!
                 }.Where(error => error is not null);
 
                 if (errors.Any())
                     return factory.Error<(T1, T2, T3, T4, T5, T6, T7)>(errors.ToList());
                 else
                     return factory.Success((
-                        hotTask1.Result.result!,
-                        hotTask2.Result.result!,
-                        hotTask3.Result.result!,
-                        hotTask4.Result.result!,
-                        hotTask5.Result.result!,
-                        hotTask6.Result.result!,
-                        hotTask7.Result.result!
+                        hotTask1.Result.Result!,
+                        hotTask2.Result.Result!,
+                        hotTask3.Result.Result!,
+                        hotTask4.Result.Result!,
+                        hotTask5.Result.Result!,
+                        hotTask6.Result.Result!,
+                        hotTask7.Result.Result!
                     ));
             },
             factory
         );
 
-    public IFutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8)>
-        ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8>
+    IFutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8)>
+        IFutureOutcomeBase.ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8>
     (
         Func<Task<IOutcome<T1>>> next1,
         Func<Task<IOutcome<T2>>> next2,
@@ -543,8 +430,8 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
             async () =>
             {
                 var input = await LazyInput();
-                if (input.error is not null)
-                    return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8)>(input.error);
+                if (input.Error is not null)
+                    return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8)>(input.Error);
 
                 var (hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6, hotTask7, hotTask8) =
                     (next1(), next2(), next3(), next4(), next5(), next6(), next7(), next8());
@@ -553,35 +440,35 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
 
                 var errors = new List<IError>()
                 {
-                    hotTask1.Result.error!,
-                    hotTask2.Result.error!,
-                    hotTask3.Result.error!,
-                    hotTask4.Result.error!,
-                    hotTask5.Result.error!,
-                    hotTask6.Result.error!,
-                    hotTask7.Result.error!,
-                    hotTask8.Result.error!,
+                    hotTask1.Result.Error!,
+                    hotTask2.Result.Error!,
+                    hotTask3.Result.Error!,
+                    hotTask4.Result.Error!,
+                    hotTask5.Result.Error!,
+                    hotTask6.Result.Error!,
+                    hotTask7.Result.Error!,
+                    hotTask8.Result.Error!,
                 }.Where(error => error is not null);
 
                 if (errors.Any())
                     return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8)>(errors.ToList());
                 else
                     return factory.Success((
-                        hotTask1.Result.result!,
-                        hotTask2.Result.result!,
-                        hotTask3.Result.result!,
-                        hotTask4.Result.result!,
-                        hotTask5.Result.result!,
-                        hotTask6.Result.result!,
-                        hotTask7.Result.result!,
-                        hotTask8.Result.result!
+                        hotTask1.Result.Result!,
+                        hotTask2.Result.Result!,
+                        hotTask3.Result.Result!,
+                        hotTask4.Result.Result!,
+                        hotTask5.Result.Result!,
+                        hotTask6.Result.Result!,
+                        hotTask7.Result.Result!,
+                        hotTask8.Result.Result!
                     ));
             },
             factory
         );
 
-    public IFutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9)>
-        ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8, T9>
+    IFutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9)>
+        IFutureOutcomeBase.ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8, T9>
     (
         Func<Task<IOutcome<T1>>> next1,
         Func<Task<IOutcome<T2>>> next2,
@@ -597,8 +484,8 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
             async () =>
             {
                 var input = await LazyInput();
-                if (input.error is not null)
-                    return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8, T9)>(input.error);
+                if (input.Error is not null)
+                    return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8, T9)>(input.Error);
 
                 var (hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6, hotTask7, hotTask8, hotTask9) =
                     (next1(), next2(), next3(), next4(), next5(), next6(), next7(), next8(), next9());
@@ -607,37 +494,37 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
 
                 var errors = new List<IError>()
                 {
-                    hotTask1.Result.error!,
-                    hotTask2.Result.error!,
-                    hotTask3.Result.error!,
-                    hotTask4.Result.error!,
-                    hotTask5.Result.error!,
-                    hotTask6.Result.error!,
-                    hotTask7.Result.error!,
-                    hotTask8.Result.error!,
-                    hotTask9.Result.error!,
+                    hotTask1.Result.Error!,
+                    hotTask2.Result.Error!,
+                    hotTask3.Result.Error!,
+                    hotTask4.Result.Error!,
+                    hotTask5.Result.Error!,
+                    hotTask6.Result.Error!,
+                    hotTask7.Result.Error!,
+                    hotTask8.Result.Error!,
+                    hotTask9.Result.Error!,
                 }.Where(error => error is not null);
 
                 if (errors.Any())
                     return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8, T9)>(errors.ToList());
                 else
                     return factory.Success((
-                        hotTask1.Result.result!,
-                        hotTask2.Result.result!,
-                        hotTask3.Result.result!,
-                        hotTask4.Result.result!,
-                        hotTask5.Result.result!,
-                        hotTask6.Result.result!,
-                        hotTask7.Result.result!,
-                        hotTask8.Result.result!,
-                        hotTask9.Result.result!
+                        hotTask1.Result.Result!,
+                        hotTask2.Result.Result!,
+                        hotTask3.Result.Result!,
+                        hotTask4.Result.Result!,
+                        hotTask5.Result.Result!,
+                        hotTask6.Result.Result!,
+                        hotTask7.Result.Result!,
+                        hotTask8.Result.Result!,
+                        hotTask9.Result.Result!
                     ));
             },
             factory
         );
 
-    public IFutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10)>
-        ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>
+    IFutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10)>
+        IFutureOutcomeBase.ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>
     (
         Func<Task<IOutcome<T1>>> next1,
         Func<Task<IOutcome<T2>>> next2,
@@ -654,8 +541,8 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
             async () =>
             {
                 var input = await LazyInput();
-                if (input.error is not null)
-                    return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10)>(input.error);
+                if (input.Error is not null)
+                    return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10)>(input.Error);
 
                 var (hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6, hotTask7, hotTask8, hotTask9, hotTask10) =
                     (next1(), next2(), next3(), next4(), next5(), next6(), next7(), next8(), next9(), next10());
@@ -664,39 +551,39 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
 
                 var errors = new List<IError>()
                 {
-                    hotTask1.Result.error!,
-                    hotTask2.Result.error!,
-                    hotTask3.Result.error!,
-                    hotTask4.Result.error!,
-                    hotTask5.Result.error!,
-                    hotTask6.Result.error!,
-                    hotTask7.Result.error!,
-                    hotTask8.Result.error!,
-                    hotTask9.Result.error!,
-                    hotTask10.Result.error!,
+                    hotTask1.Result.Error!,
+                    hotTask2.Result.Error!,
+                    hotTask3.Result.Error!,
+                    hotTask4.Result.Error!,
+                    hotTask5.Result.Error!,
+                    hotTask6.Result.Error!,
+                    hotTask7.Result.Error!,
+                    hotTask8.Result.Error!,
+                    hotTask9.Result.Error!,
+                    hotTask10.Result.Error!,
                 }.Where(error => error is not null);
 
                 if (errors.Any())
                     return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10)>(errors.ToList());
                 else
                     return factory.Success((
-                        hotTask1.Result.result!,
-                        hotTask2.Result.result!,
-                        hotTask3.Result.result!,
-                        hotTask4.Result.result!,
-                        hotTask5.Result.result!,
-                        hotTask6.Result.result!,
-                        hotTask7.Result.result!,
-                        hotTask8.Result.result!,
-                        hotTask9.Result.result!,
-                        hotTask10.Result.result!
+                        hotTask1.Result.Result!,
+                        hotTask2.Result.Result!,
+                        hotTask3.Result.Result!,
+                        hotTask4.Result.Result!,
+                        hotTask5.Result.Result!,
+                        hotTask6.Result.Result!,
+                        hotTask7.Result.Result!,
+                        hotTask8.Result.Result!,
+                        hotTask9.Result.Result!,
+                        hotTask10.Result.Result!
                     ));
             },
             factory
         );
 
-    public IFutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11)>
-        ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>
+    IFutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11)>
+        IFutureOutcomeBase.ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>
     (
         Func<Task<IOutcome<T1>>> next1,
         Func<Task<IOutcome<T2>>> next2,
@@ -714,8 +601,8 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
             async () =>
             {
                 var input = await LazyInput();
-                if (input.error is not null)
-                    return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11)>(input.error);
+                if (input.Error is not null)
+                    return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11)>(input.Error);
 
                 var (hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6, hotTask7, hotTask8, hotTask9, hotTask10, hotTask11) =
                     (next1(), next2(), next3(), next4(), next5(), next6(), next7(), next8(), next9(), next10(), next11());
@@ -724,41 +611,41 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
 
                 var errors = new List<IError>()
                 {
-                    hotTask1.Result.error!,
-                    hotTask2.Result.error!,
-                    hotTask3.Result.error!,
-                    hotTask4.Result.error!,
-                    hotTask5.Result.error!,
-                    hotTask6.Result.error!,
-                    hotTask7.Result.error!,
-                    hotTask8.Result.error!,
-                    hotTask9.Result.error!,
-                    hotTask10.Result.error!,
-                    hotTask11.Result.error!,
+                    hotTask1.Result.Error!,
+                    hotTask2.Result.Error!,
+                    hotTask3.Result.Error!,
+                    hotTask4.Result.Error!,
+                    hotTask5.Result.Error!,
+                    hotTask6.Result.Error!,
+                    hotTask7.Result.Error!,
+                    hotTask8.Result.Error!,
+                    hotTask9.Result.Error!,
+                    hotTask10.Result.Error!,
+                    hotTask11.Result.Error!,
                 }.Where(error => error is not null);
 
                 if (errors.Any())
                     return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11)>(errors.ToList());
                 else
                     return factory.Success((
-                        hotTask1.Result.result!,
-                        hotTask2.Result.result!,
-                        hotTask3.Result.result!,
-                        hotTask4.Result.result!,
-                        hotTask5.Result.result!,
-                        hotTask6.Result.result!,
-                        hotTask7.Result.result!,
-                        hotTask8.Result.result!,
-                        hotTask9.Result.result!,
-                        hotTask10.Result.result!,
-                        hotTask11.Result.result!
+                        hotTask1.Result.Result!,
+                        hotTask2.Result.Result!,
+                        hotTask3.Result.Result!,
+                        hotTask4.Result.Result!,
+                        hotTask5.Result.Result!,
+                        hotTask6.Result.Result!,
+                        hotTask7.Result.Result!,
+                        hotTask8.Result.Result!,
+                        hotTask9.Result.Result!,
+                        hotTask10.Result.Result!,
+                        hotTask11.Result.Result!
                     ));
             },
             factory
         );
 
-    public IFutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12)>
-        ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>
+    IFutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12)>
+        IFutureOutcomeBase.ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>
     (
         Func<Task<IOutcome<T1>>> next1,
         Func<Task<IOutcome<T2>>> next2,
@@ -777,8 +664,8 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
             async () =>
             {
                 var input = await LazyInput();
-                if (input.error is not null)
-                    return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12)>(input.error);
+                if (input.Error is not null)
+                    return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12)>(input.Error);
 
                 var (hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6, hotTask7, hotTask8, hotTask9, hotTask10, hotTask11, hotTask12) =
                     (next1(), next2(), next3(), next4(), next5(), next6(), next7(), next8(), next9(), next10(), next11(), next12());
@@ -787,43 +674,43 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
 
                 var errors = new List<IError>()
                 {
-                    hotTask1.Result.error!,
-                    hotTask2.Result.error!,
-                    hotTask3.Result.error!,
-                    hotTask4.Result.error!,
-                    hotTask5.Result.error!,
-                    hotTask6.Result.error!,
-                    hotTask7.Result.error!,
-                    hotTask8.Result.error!,
-                    hotTask9.Result.error!,
-                    hotTask10.Result.error!,
-                    hotTask11.Result.error!,
-                    hotTask12.Result.error!,
+                    hotTask1.Result.Error!,
+                    hotTask2.Result.Error!,
+                    hotTask3.Result.Error!,
+                    hotTask4.Result.Error!,
+                    hotTask5.Result.Error!,
+                    hotTask6.Result.Error!,
+                    hotTask7.Result.Error!,
+                    hotTask8.Result.Error!,
+                    hotTask9.Result.Error!,
+                    hotTask10.Result.Error!,
+                    hotTask11.Result.Error!,
+                    hotTask12.Result.Error!,
                 }.Where(error => error is not null);
 
                 if (errors.Any())
                     return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12)>(errors.ToList());
                 else
                     return factory.Success((
-                        hotTask1.Result.result!,
-                        hotTask2.Result.result!,
-                        hotTask3.Result.result!,
-                        hotTask4.Result.result!,
-                        hotTask5.Result.result!,
-                        hotTask6.Result.result!,
-                        hotTask7.Result.result!,
-                        hotTask8.Result.result!,
-                        hotTask9.Result.result!,
-                        hotTask10.Result.result!,
-                        hotTask11.Result.result!,
-                        hotTask12.Result.result!
+                        hotTask1.Result.Result!,
+                        hotTask2.Result.Result!,
+                        hotTask3.Result.Result!,
+                        hotTask4.Result.Result!,
+                        hotTask5.Result.Result!,
+                        hotTask6.Result.Result!,
+                        hotTask7.Result.Result!,
+                        hotTask8.Result.Result!,
+                        hotTask9.Result.Result!,
+                        hotTask10.Result.Result!,
+                        hotTask11.Result.Result!,
+                        hotTask12.Result.Result!
                     ));
             },
             factory
         );
 
-    public IFutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13)>
-        ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>
+    IFutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13)>
+        IFutureOutcomeBase.ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>
     (
         Func<Task<IOutcome<T1>>> next1,
         Func<Task<IOutcome<T2>>> next2,
@@ -843,8 +730,8 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
             async () =>
             {
                 var input = await LazyInput();
-                if (input.error is not null)
-                    return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13)>(input.error);
+                if (input.Error is not null)
+                    return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13)>(input.Error);
 
                 var (hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6, hotTask7, hotTask8, hotTask9, hotTask10, hotTask11, hotTask12, hotTask13) =
                     (next1(), next2(), next3(), next4(), next5(), next6(), next7(), next8(), next9(), next10(), next11(), next12(), next13());
@@ -853,45 +740,45 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
 
                 var errors = new List<IError>()
                 {
-                    hotTask1.Result.error!,
-                    hotTask2.Result.error!,
-                    hotTask3.Result.error!,
-                    hotTask4.Result.error!,
-                    hotTask5.Result.error!,
-                    hotTask6.Result.error!,
-                    hotTask7.Result.error!,
-                    hotTask8.Result.error!,
-                    hotTask9.Result.error!,
-                    hotTask10.Result.error!,
-                    hotTask11.Result.error!,
-                    hotTask12.Result.error!,
-                    hotTask13.Result.error!,
+                    hotTask1.Result.Error!,
+                    hotTask2.Result.Error!,
+                    hotTask3.Result.Error!,
+                    hotTask4.Result.Error!,
+                    hotTask5.Result.Error!,
+                    hotTask6.Result.Error!,
+                    hotTask7.Result.Error!,
+                    hotTask8.Result.Error!,
+                    hotTask9.Result.Error!,
+                    hotTask10.Result.Error!,
+                    hotTask11.Result.Error!,
+                    hotTask12.Result.Error!,
+                    hotTask13.Result.Error!,
                 }.Where(error => error is not null);
 
                 if (errors.Any())
                     return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13)>(errors.ToList());
                 else
                     return factory.Success((
-                        hotTask1.Result.result!,
-                        hotTask2.Result.result!,
-                        hotTask3.Result.result!,
-                        hotTask4.Result.result!,
-                        hotTask5.Result.result!,
-                        hotTask6.Result.result!,
-                        hotTask7.Result.result!,
-                        hotTask8.Result.result!,
-                        hotTask9.Result.result!,
-                        hotTask10.Result.result!,
-                        hotTask11.Result.result!,
-                        hotTask12.Result.result!,
-                        hotTask13.Result.result!
+                        hotTask1.Result.Result!,
+                        hotTask2.Result.Result!,
+                        hotTask3.Result.Result!,
+                        hotTask4.Result.Result!,
+                        hotTask5.Result.Result!,
+                        hotTask6.Result.Result!,
+                        hotTask7.Result.Result!,
+                        hotTask8.Result.Result!,
+                        hotTask9.Result.Result!,
+                        hotTask10.Result.Result!,
+                        hotTask11.Result.Result!,
+                        hotTask12.Result.Result!,
+                        hotTask13.Result.Result!
                     ));
             },
             factory
         );
 
-    public IFutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14)>
-        ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>
+    IFutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14)>
+        IFutureOutcomeBase.ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>
     (
         Func<Task<IOutcome<T1>>> next1,
         Func<Task<IOutcome<T2>>> next2,
@@ -912,8 +799,8 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
             async () =>
             {
                 var input = await LazyInput();
-                if (input.error is not null)
-                    return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14)>(input.error);
+                if (input.Error is not null)
+                    return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14)>(input.Error);
 
                 var (hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6, hotTask7, hotTask8, hotTask9, hotTask10, hotTask11, hotTask12, hotTask13, hotTask14) =
                     (next1(), next2(), next3(), next4(), next5(), next6(), next7(), next8(), next9(), next10(), next11(), next12(), next13(), next14());
@@ -922,47 +809,47 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
 
                 var errors = new List<IError>()
                 {
-                    hotTask1.Result.error!,
-                    hotTask2.Result.error!,
-                    hotTask3.Result.error!,
-                    hotTask4.Result.error!,
-                    hotTask5.Result.error!,
-                    hotTask6.Result.error!,
-                    hotTask7.Result.error!,
-                    hotTask8.Result.error!,
-                    hotTask9.Result.error!,
-                    hotTask10.Result.error!,
-                    hotTask11.Result.error!,
-                    hotTask12.Result.error!,
-                    hotTask13.Result.error!,
-                    hotTask14.Result.error!,
+                    hotTask1.Result.Error!,
+                    hotTask2.Result.Error!,
+                    hotTask3.Result.Error!,
+                    hotTask4.Result.Error!,
+                    hotTask5.Result.Error!,
+                    hotTask6.Result.Error!,
+                    hotTask7.Result.Error!,
+                    hotTask8.Result.Error!,
+                    hotTask9.Result.Error!,
+                    hotTask10.Result.Error!,
+                    hotTask11.Result.Error!,
+                    hotTask12.Result.Error!,
+                    hotTask13.Result.Error!,
+                    hotTask14.Result.Error!,
                 }.Where(error => error is not null);
 
                 if (errors.Any())
                     return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14)>(errors.ToList());
                 else
                     return factory.Success((
-                        hotTask1.Result.result!,
-                        hotTask2.Result.result!,
-                        hotTask3.Result.result!,
-                        hotTask4.Result.result!,
-                        hotTask5.Result.result!,
-                        hotTask6.Result.result!,
-                        hotTask7.Result.result!,
-                        hotTask8.Result.result!,
-                        hotTask9.Result.result!,
-                        hotTask10.Result.result!,
-                        hotTask11.Result.result!,
-                        hotTask12.Result.result!,
-                        hotTask13.Result.result!,
-                        hotTask14.Result.result!
+                        hotTask1.Result.Result!,
+                        hotTask2.Result.Result!,
+                        hotTask3.Result.Result!,
+                        hotTask4.Result.Result!,
+                        hotTask5.Result.Result!,
+                        hotTask6.Result.Result!,
+                        hotTask7.Result.Result!,
+                        hotTask8.Result.Result!,
+                        hotTask9.Result.Result!,
+                        hotTask10.Result.Result!,
+                        hotTask11.Result.Result!,
+                        hotTask12.Result.Result!,
+                        hotTask13.Result.Result!,
+                        hotTask14.Result.Result!
                     ));
             },
             factory
         );
 
-    public IFutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15)>
-        ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>
+    IFutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15)>
+        IFutureOutcomeBase.ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>
     (
         Func<Task<IOutcome<T1>>> next1,
         Func<Task<IOutcome<T2>>> next2,
@@ -984,8 +871,8 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
             async () =>
             {
                 var input = await LazyInput();
-                if (input.error is not null)
-                    return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15)>(input.error);
+                if (input.Error is not null)
+                    return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15)>(input.Error);
 
                 var (hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6, hotTask7, hotTask8, hotTask9, hotTask10, hotTask11, hotTask12, hotTask13, hotTask14, hotTask15) =
                     (next1(), next2(), next3(), next4(), next5(), next6(), next7(), next8(), next9(), next10(), next11(), next12(), next13(), next14(), next15());
@@ -994,49 +881,49 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
 
                 var errors = new List<IError>()
                 {
-                    hotTask1.Result.error!,
-                    hotTask2.Result.error!,
-                    hotTask3.Result.error!,
-                    hotTask4.Result.error!,
-                    hotTask5.Result.error!,
-                    hotTask6.Result.error!,
-                    hotTask7.Result.error!,
-                    hotTask8.Result.error!,
-                    hotTask9.Result.error!,
-                    hotTask10.Result.error!,
-                    hotTask11.Result.error!,
-                    hotTask12.Result.error!,
-                    hotTask13.Result.error!,
-                    hotTask14.Result.error!,
-                    hotTask15.Result.error!
+                    hotTask1.Result.Error!,
+                    hotTask2.Result.Error!,
+                    hotTask3.Result.Error!,
+                    hotTask4.Result.Error!,
+                    hotTask5.Result.Error!,
+                    hotTask6.Result.Error!,
+                    hotTask7.Result.Error!,
+                    hotTask8.Result.Error!,
+                    hotTask9.Result.Error!,
+                    hotTask10.Result.Error!,
+                    hotTask11.Result.Error!,
+                    hotTask12.Result.Error!,
+                    hotTask13.Result.Error!,
+                    hotTask14.Result.Error!,
+                    hotTask15.Result.Error!
                 }.Where(error => error is not null);
 
                 if (errors.Any())
                     return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15)>(errors.ToList());
                 else
                     return factory.Success((
-                        hotTask1.Result.result!,
-                        hotTask2.Result.result!,
-                        hotTask3.Result.result!,
-                        hotTask4.Result.result!,
-                        hotTask5.Result.result!,
-                        hotTask6.Result.result!,
-                        hotTask7.Result.result!,
-                        hotTask8.Result.result!,
-                        hotTask9.Result.result!,
-                        hotTask10.Result.result!,
-                        hotTask11.Result.result!,
-                        hotTask12.Result.result!,
-                        hotTask13.Result.result!,
-                        hotTask14.Result.result!,
-                        hotTask15.Result.result!
+                        hotTask1.Result.Result!,
+                        hotTask2.Result.Result!,
+                        hotTask3.Result.Result!,
+                        hotTask4.Result.Result!,
+                        hotTask5.Result.Result!,
+                        hotTask6.Result.Result!,
+                        hotTask7.Result.Result!,
+                        hotTask8.Result.Result!,
+                        hotTask9.Result.Result!,
+                        hotTask10.Result.Result!,
+                        hotTask11.Result.Result!,
+                        hotTask12.Result.Result!,
+                        hotTask13.Result.Result!,
+                        hotTask14.Result.Result!,
+                        hotTask15.Result.Result!
                     ));
             },
             factory
         );
 
-    public IFutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16)>
-        ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>
+    IFutureOutcome<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16)>
+        IFutureOutcomeBase.ThenInParallel<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>
     (
         Func<Task<IOutcome<T1>>> next1,
         Func<Task<IOutcome<T2>>> next2,
@@ -1059,8 +946,8 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
             async () =>
             {
                 var input = await LazyInput();
-                if (input.error is not null)
-                    return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16)>(input.error);
+                if (input.Error is not null)
+                    return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16)>(input.Error);
 
                 var (hotTask1, hotTask2, hotTask3, hotTask4, hotTask5, hotTask6, hotTask7, hotTask8, hotTask9, hotTask10, hotTask11, hotTask12, hotTask13, hotTask14, hotTask15, hotTask16) =
                     (next1(), next2(), next3(), next4(), next5(), next6(), next7(), next8(), next9(), next10(), next11(), next12(), next13(), next14(), next15(), next16());
@@ -1069,44 +956,44 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
 
                 var errors = new List<IError>()
                 {
-                    hotTask1.Result.error!,
-                    hotTask2.Result.error!,
-                    hotTask3.Result.error!,
-                    hotTask4.Result.error!,
-                    hotTask5.Result.error!,
-                    hotTask6.Result.error!,
-                    hotTask7.Result.error!,
-                    hotTask8.Result.error!,
-                    hotTask9.Result.error!,
-                    hotTask10.Result.error!,
-                    hotTask11.Result.error!,
-                    hotTask12.Result.error!,
-                    hotTask13.Result.error!,
-                    hotTask14.Result.error!,
-                    hotTask15.Result.error!,
-                    hotTask16.Result.error!
+                    hotTask1.Result.Error!,
+                    hotTask2.Result.Error!,
+                    hotTask3.Result.Error!,
+                    hotTask4.Result.Error!,
+                    hotTask5.Result.Error!,
+                    hotTask6.Result.Error!,
+                    hotTask7.Result.Error!,
+                    hotTask8.Result.Error!,
+                    hotTask9.Result.Error!,
+                    hotTask10.Result.Error!,
+                    hotTask11.Result.Error!,
+                    hotTask12.Result.Error!,
+                    hotTask13.Result.Error!,
+                    hotTask14.Result.Error!,
+                    hotTask15.Result.Error!,
+                    hotTask16.Result.Error!
                 }.Where(error => error is not null);
 
                 if (errors.Any())
                     return factory.Error<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16)>(errors.ToList());
                 else
                     return factory.Success((
-                        hotTask1.Result.result!,
-                        hotTask2.Result.result!,
-                        hotTask3.Result.result!,
-                        hotTask4.Result.result!,
-                        hotTask5.Result.result!,
-                        hotTask6.Result.result!,
-                        hotTask7.Result.result!,
-                        hotTask8.Result.result!,
-                        hotTask9.Result.result!,
-                        hotTask10.Result.result!,
-                        hotTask11.Result.result!,
-                        hotTask12.Result.result!,
-                        hotTask13.Result.result!,
-                        hotTask14.Result.result!,
-                        hotTask15.Result.result!,
-                        hotTask16.Result.result!
+                        hotTask1.Result.Result!,
+                        hotTask2.Result.Result!,
+                        hotTask3.Result.Result!,
+                        hotTask4.Result.Result!,
+                        hotTask5.Result.Result!,
+                        hotTask6.Result.Result!,
+                        hotTask7.Result.Result!,
+                        hotTask8.Result.Result!,
+                        hotTask9.Result.Result!,
+                        hotTask10.Result.Result!,
+                        hotTask11.Result.Result!,
+                        hotTask12.Result.Result!,
+                        hotTask13.Result.Result!,
+                        hotTask14.Result.Result!,
+                        hotTask15.Result.Result!,
+                        hotTask16.Result.Result!
                     ));
             },
             factory

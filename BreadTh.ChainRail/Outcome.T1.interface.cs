@@ -3,8 +3,8 @@ namespace BreadTh.ChainRail;
 
 public interface IOutcome<VALUE>
 {
-    IError? error { get; }
-    VALUE? result { get; }
+    IError? Error { get; }
+    VALUE? Result { get; }
 
     void Switch(Action<VALUE> onSuccess, Action<IError> onError);
     Task Switch(Action<VALUE> onSuccess, Func<IError, Task> onError);
