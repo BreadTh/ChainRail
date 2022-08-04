@@ -228,4 +228,443 @@ internal class FutureOutcome<VALUE> : FutureOutcomeBase<IOutcome<VALUE>, VALUE>,
 
     IFutureOutcome<(VALUE, OUTPUT)> IFutureOutcome<VALUE>.Add<OUTPUT>(Func<IFutureOutcome<OUTPUT>> next) =>
         InnerAdd(value => next().Execute());
+
+
+    IFutureOutcome<OUTPUT> IFutureOutcome<VALUE>.Then<OUTPUT, INPUT_1>(INPUT_1 input1, Func<VALUE, INPUT_1, IFutureOutcome<OUTPUT>> next) =>
+        new FutureOutcome<OUTPUT>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.Error is not null)
+                    return factory.Error<OUTPUT>(input.Error);
+
+                var output = await next(input.Result!, input1).Execute();
+
+                if (output.Error is not null)
+                    return factory.Error<OUTPUT>(output.Error);
+                else
+                    return factory.Success(output.Result!);
+            },
+            factory
+        );
+
+    IFutureOutcome<OUTPUT> IFutureOutcome<VALUE>.Then<OUTPUT, INPUT_1, INPUT_2>(INPUT_1 input1, INPUT_2 input2, Func<VALUE, INPUT_1, INPUT_2, IFutureOutcome<OUTPUT>> next) =>
+        new FutureOutcome<OUTPUT>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.Error is not null)
+                    return factory.Error<OUTPUT>(input.Error);
+
+                var output = await next(input.Result!, input1, input2).Execute();
+
+                if (output.Error is not null)
+                    return factory.Error<OUTPUT>(output.Error);
+                else
+                    return factory.Success(output.Result!);
+            },
+            factory
+        );
+
+    IFutureOutcome<OUTPUT> IFutureOutcome<VALUE>.Then<OUTPUT, INPUT_1, INPUT_2, INPUT_3>(INPUT_1 input1, INPUT_2 input2, INPUT_3 input3, Func<VALUE, INPUT_1, INPUT_2, INPUT_3, IFutureOutcome<OUTPUT>> next) =>
+        new FutureOutcome<OUTPUT>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.Error is not null)
+                    return factory.Error<OUTPUT>(input.Error);
+
+                var output = await next(input.Result!, input1, input2, input3).Execute();
+
+                if (output.Error is not null)
+                    return factory.Error<OUTPUT>(output.Error);
+                else
+                    return factory.Success(output.Result!);
+            },
+            factory
+        );
+
+    IFutureOutcome<OUTPUT> IFutureOutcome<VALUE>.Then<OUTPUT, INPUT_1, INPUT_2, INPUT_3, INPUT_4>(INPUT_1 input1, INPUT_2 input2, INPUT_3 input3, INPUT_4 input4, Func<VALUE, INPUT_1, INPUT_2, INPUT_3, INPUT_4, IFutureOutcome<OUTPUT>> next) =>
+        new FutureOutcome<OUTPUT>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.Error is not null)
+                    return factory.Error<OUTPUT>(input.Error);
+
+                var output = await next(input.Result!, input1, input2, input3, input4).Execute();
+
+                if (output.Error is not null)
+                    return factory.Error<OUTPUT>(output.Error);
+                else
+                    return factory.Success(output.Result!);
+            },
+            factory
+        );
+
+    IFutureOutcome<OUTPUT> IFutureOutcome<VALUE>.Then<OUTPUT, INPUT_1, INPUT_2, INPUT_3, INPUT_4, INPUT_5>(INPUT_1 input1, INPUT_2 input2, INPUT_3 input3, INPUT_4 input4, INPUT_5 input5, Func<VALUE, INPUT_1, INPUT_2, INPUT_3, INPUT_4, INPUT_5, IFutureOutcome<OUTPUT>> next) =>
+        new FutureOutcome<OUTPUT>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.Error is not null)
+                    return factory.Error<OUTPUT>(input.Error);
+
+                var output = await next(input.Result!, input1, input2, input3, input4, input5).Execute();
+
+                if (output.Error is not null)
+                    return factory.Error<OUTPUT>(output.Error);
+                else
+                    return factory.Success(output.Result!);
+            },
+            factory
+        );
+
+    IFutureOutcome<OUTPUT> IFutureOutcome<VALUE>.Then<OUTPUT, INPUT_1, INPUT_2, INPUT_3, INPUT_4, INPUT_5, INPUT_6>(INPUT_1 input1, INPUT_2 input2, INPUT_3 input3, INPUT_4 input4, INPUT_5 input5, INPUT_6 input6, Func<VALUE, INPUT_1, INPUT_2, INPUT_3, INPUT_4, INPUT_5, INPUT_6, IFutureOutcome<OUTPUT>> next) =>
+        new FutureOutcome<OUTPUT>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.Error is not null)
+                    return factory.Error<OUTPUT>(input.Error);
+
+                var output = await next(input.Result!, input1, input2, input3, input4, input5, input6).Execute();
+
+                if (output.Error is not null)
+                    return factory.Error<OUTPUT>(output.Error);
+                else
+                    return factory.Success(output.Result!);
+            },
+            factory
+        );
+
+    IFutureOutcome<OUTPUT> IFutureOutcome<VALUE>.Then<OUTPUT, INPUT_1, INPUT_2, INPUT_3, INPUT_4, INPUT_5, INPUT_6, INPUT_7>(INPUT_1 input1, INPUT_2 input2, INPUT_3 input3, INPUT_4 input4, INPUT_5 input5, INPUT_6 input6, INPUT_7 input7, Func<VALUE, INPUT_1, INPUT_2, INPUT_3, INPUT_4, INPUT_5, INPUT_6, INPUT_7, IFutureOutcome<OUTPUT>> next) =>
+        new FutureOutcome<OUTPUT>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.Error is not null)
+                    return factory.Error<OUTPUT>(input.Error);
+
+                var output = await next(input.Result!, input1, input2, input3, input4, input5, input6, input7).Execute();
+
+                if (output.Error is not null)
+                    return factory.Error<OUTPUT>(output.Error);
+                else
+                    return factory.Success(output.Result!);
+            },
+            factory
+        );
+
+    IFutureOutcome<VALUE> IFutureOutcome<VALUE>.Tee<OUTPUT, INPUT_1, INPUT_2, INPUT_3, INPUT_4, INPUT_5, INPUT_6, INPUT_7, INPUT_8>(INPUT_1 input1, INPUT_2 input2, INPUT_3 input3, INPUT_4 input4, INPUT_5 input5, INPUT_6 input6, INPUT_7 input7, INPUT_8 input8, Func<VALUE, INPUT_1, INPUT_2, INPUT_3, INPUT_4, INPUT_5, INPUT_6, INPUT_7, INPUT_8, IFutureOutcome<OUTPUT>> next) =>
+        new FutureOutcome<VALUE>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.Error is not null)
+                    return factory.Error<VALUE>(input.Error);
+
+                var output = await next(input.Result!, input1, input2, input3, input4, input5, input6, input7, input8).Execute();
+
+                if (output.Error is not null)
+                    return factory.Error<VALUE>(output.Error);
+                else
+                    return factory.Success(input.Result!);
+            },
+            factory
+        );
+
+
+    IFutureOutcome<VALUE> IFutureOutcome<VALUE>.Tee<OUTPUT, INPUT_1>(INPUT_1 input1, Func<VALUE, INPUT_1, IFutureOutcome<OUTPUT>> next) =>
+        new FutureOutcome<VALUE>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.Error is not null)
+                    return factory.Error<VALUE>(input.Error);
+
+                var output = await next(input.Result!, input1).Execute();
+
+                if (output.Error is not null)
+                    return factory.Error<VALUE>(output.Error);
+                else
+                    return factory.Success(input.Result!);
+            },
+            factory
+        );
+
+    IFutureOutcome<VALUE> IFutureOutcome<VALUE>.Tee<OUTPUT, INPUT_1, INPUT_2>(INPUT_1 input1, INPUT_2 input2, Func<VALUE, INPUT_1, INPUT_2, IFutureOutcome<OUTPUT>> next) =>
+        new FutureOutcome<VALUE>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.Error is not null)
+                    return factory.Error<VALUE>(input.Error);
+
+                var output = await next(input.Result!, input1, input2).Execute();
+
+                if (output.Error is not null)
+                    return factory.Error<VALUE>(output.Error);
+                else
+                    return factory.Success(input.Result!);
+            },
+            factory
+        );
+
+    IFutureOutcome<VALUE> IFutureOutcome<VALUE>.Tee<OUTPUT, INPUT_1, INPUT_2, INPUT_3>(INPUT_1 input1, INPUT_2 input2, INPUT_3 input3, Func<VALUE, INPUT_1, INPUT_2, INPUT_3, IFutureOutcome<OUTPUT>> next) =>
+        new FutureOutcome<VALUE>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.Error is not null)
+                    return factory.Error<VALUE>(input.Error);
+
+                var output = await next(input.Result!, input1, input2, input3).Execute();
+
+                if (output.Error is not null)
+                    return factory.Error<VALUE>(output.Error);
+                else
+                    return factory.Success(input.Result!);
+            },
+            factory
+        );
+
+    IFutureOutcome<VALUE> IFutureOutcome<VALUE>.Tee<OUTPUT, INPUT_1, INPUT_2, INPUT_3, INPUT_4>(INPUT_1 input1, INPUT_2 input2, INPUT_3 input3, INPUT_4 input4, Func<VALUE, INPUT_1, INPUT_2, INPUT_3, INPUT_4, IFutureOutcome<OUTPUT>> next) =>
+        new FutureOutcome<VALUE>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.Error is not null)
+                    return factory.Error<VALUE>(input.Error);
+
+                var output = await next(input.Result!, input1, input2, input3, input4).Execute();
+
+                if (output.Error is not null)
+                    return factory.Error<VALUE>(output.Error);
+                else
+                    return factory.Success(input.Result!);
+            },
+            factory
+        );
+
+    IFutureOutcome<VALUE> IFutureOutcome<VALUE>.Tee<OUTPUT, INPUT_1, INPUT_2, INPUT_3, INPUT_4, INPUT_5>(INPUT_1 input1, INPUT_2 input2, INPUT_3 input3, INPUT_4 input4, INPUT_5 input5, Func<VALUE, INPUT_1, INPUT_2, INPUT_3, INPUT_4, INPUT_5, IFutureOutcome<OUTPUT>> next) =>
+        new FutureOutcome<VALUE>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.Error is not null)
+                    return factory.Error<VALUE>(input.Error);
+
+                var output = await next(input.Result!, input1, input2, input3, input4, input5).Execute();
+
+                if (output.Error is not null)
+                    return factory.Error<VALUE>(output.Error);
+                else
+                    return factory.Success(input.Result!);
+            },
+            factory
+        );
+
+    IFutureOutcome<VALUE> IFutureOutcome<VALUE>.Tee<OUTPUT, INPUT_1, INPUT_2, INPUT_3, INPUT_4, INPUT_5, INPUT_6>(INPUT_1 input1, INPUT_2 input2, INPUT_3 input3, INPUT_4 input4, INPUT_5 input5, INPUT_6 input6, Func<VALUE, INPUT_1, INPUT_2, INPUT_3, INPUT_4, INPUT_5, INPUT_6, IFutureOutcome<OUTPUT>> next) =>
+        new FutureOutcome<VALUE>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.Error is not null)
+                    return factory.Error<VALUE>(input.Error);
+
+                var output = await next(input.Result!, input1, input2, input3, input4, input5, input6).Execute();
+
+                if (output.Error is not null)
+                    return factory.Error<VALUE>(output.Error);
+                else
+                    return factory.Success(input.Result!);
+            },
+            factory
+        );
+
+    IFutureOutcome<VALUE> IFutureOutcome<VALUE>.Tee<OUTPUT, INPUT_1, INPUT_2, INPUT_3, INPUT_4, INPUT_5, INPUT_6, INPUT_7>(INPUT_1 input1, INPUT_2 input2, INPUT_3 input3, INPUT_4 input4, INPUT_5 input5, INPUT_6 input6, INPUT_7 input7, Func<VALUE, INPUT_1, INPUT_2, INPUT_3, INPUT_4, INPUT_5, INPUT_6, INPUT_7, IFutureOutcome<OUTPUT>> next) =>
+        new FutureOutcome<VALUE>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.Error is not null)
+                    return factory.Error<VALUE>(input.Error);
+
+                var output = await next(input.Result!, input1, input2, input3, input4, input5, input6, input7).Execute();
+
+                if (output.Error is not null)
+                    return factory.Error<VALUE>(output.Error);
+                else
+                    return factory.Success(input.Result!);
+            },
+            factory
+        );
+
+    IFutureOutcome<OUTPUT> IFutureOutcome<VALUE>.Then<OUTPUT, INPUT_1, INPUT_2, INPUT_3, INPUT_4, INPUT_5, INPUT_6, INPUT_7, INPUT_8>(INPUT_1 input1, INPUT_2 input2, INPUT_3 input3, INPUT_4 input4, INPUT_5 input5, INPUT_6 input6, INPUT_7 input7, INPUT_8 input8, Func<VALUE, INPUT_1, INPUT_2, INPUT_3, INPUT_4, INPUT_5, INPUT_6, INPUT_7, INPUT_8, IFutureOutcome<OUTPUT>> next) =>
+        new FutureOutcome<OUTPUT>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.Error is not null)
+                    return factory.Error<OUTPUT>(input.Error);
+
+                var output = await next(input.Result!, input1, input2, input3, input4, input5, input6, input7, input8).Execute();
+
+                if (output.Error is not null)
+                    return factory.Error<OUTPUT>(output.Error);
+                else
+                    return factory.Success(output.Result!);
+            },
+            factory
+        );
+
+
+
+    IFutureOutcome<VALUE> IFutureOutcome<VALUE>.Tee<INPUT_1>(INPUT_1 input1, Func<VALUE, INPUT_1, IFutureOutcome> next) =>
+        new FutureOutcome<VALUE>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.Error is not null)
+                    return factory.Error<VALUE>(input.Error);
+
+                var output = await next(input.Result!, input1).Execute();
+
+                if (output.Error is not null)
+                    return factory.Error<VALUE>(output.Error);
+                else
+                    return factory.Success(input.Result!);
+            },
+            factory
+        );
+
+    IFutureOutcome<VALUE> IFutureOutcome<VALUE>.Tee<INPUT_1, INPUT_2>(INPUT_1 input1, INPUT_2 input2, Func<VALUE, INPUT_1, INPUT_2, IFutureOutcome> next) =>
+        new FutureOutcome<VALUE>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.Error is not null)
+                    return factory.Error<VALUE>(input.Error);
+
+                var output = await next(input.Result!, input1, input2).Execute();
+
+                if (output.Error is not null)
+                    return factory.Error<VALUE>(output.Error);
+                else
+                    return factory.Success(input.Result!);
+            },
+            factory
+        );
+
+    IFutureOutcome<VALUE> IFutureOutcome<VALUE>.Tee<INPUT_1, INPUT_2, INPUT_3>(INPUT_1 input1, INPUT_2 input2, INPUT_3 input3, Func<VALUE, INPUT_1, INPUT_2, INPUT_3, IFutureOutcome> next) =>
+        new FutureOutcome<VALUE>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.Error is not null)
+                    return factory.Error<VALUE>(input.Error);
+
+                var output = await next(input.Result!, input1, input2, input3).Execute();
+
+                if (output.Error is not null)
+                    return factory.Error<VALUE>(output.Error);
+                else
+                    return factory.Success(input.Result!);
+            },
+            factory
+        );
+
+    IFutureOutcome<VALUE> IFutureOutcome<VALUE>.Tee<INPUT_1, INPUT_2, INPUT_3, INPUT_4>(INPUT_1 input1, INPUT_2 input2, INPUT_3 input3, INPUT_4 input4, Func<VALUE, INPUT_1, INPUT_2, INPUT_3, INPUT_4, IFutureOutcome> next) =>
+        new FutureOutcome<VALUE>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.Error is not null)
+                    return factory.Error<VALUE>(input.Error);
+
+                var output = await next(input.Result!, input1, input2, input3, input4).Execute();
+
+                if (output.Error is not null)
+                    return factory.Error<VALUE>(output.Error);
+                else
+                    return factory.Success(input.Result!);
+            },
+            factory
+        );
+
+    IFutureOutcome<VALUE> IFutureOutcome<VALUE>.Tee<INPUT_1, INPUT_2, INPUT_3, INPUT_4, INPUT_5>(INPUT_1 input1, INPUT_2 input2, INPUT_3 input3, INPUT_4 input4, INPUT_5 input5, Func<VALUE, INPUT_1, INPUT_2, INPUT_3, INPUT_4, INPUT_5, IFutureOutcome> next) =>
+        new FutureOutcome<VALUE>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.Error is not null)
+                    return factory.Error<VALUE>(input.Error);
+
+                var output = await next(input.Result!, input1, input2, input3, input4, input5).Execute();
+
+                if (output.Error is not null)
+                    return factory.Error<VALUE>(output.Error);
+                else
+                    return factory.Success(input.Result!);
+            },
+            factory
+        );
+
+    IFutureOutcome<VALUE> IFutureOutcome<VALUE>.Tee<INPUT_1, INPUT_2, INPUT_3, INPUT_4, INPUT_5, INPUT_6>(INPUT_1 input1, INPUT_2 input2, INPUT_3 input3, INPUT_4 input4, INPUT_5 input5, INPUT_6 input6, Func<VALUE, INPUT_1, INPUT_2, INPUT_3, INPUT_4, INPUT_5, INPUT_6, IFutureOutcome> next) =>
+        new FutureOutcome<VALUE>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.Error is not null)
+                    return factory.Error<VALUE>(input.Error);
+
+                var output = await next(input.Result!, input1, input2, input3, input4, input5, input6).Execute();
+
+                if (output.Error is not null)
+                    return factory.Error<VALUE>(output.Error);
+                else
+                    return factory.Success(input.Result!);
+            },
+            factory
+        );
+
+    IFutureOutcome<VALUE> IFutureOutcome<VALUE>.Tee<INPUT_1, INPUT_2, INPUT_3, INPUT_4, INPUT_5, INPUT_6, INPUT_7>(INPUT_1 input1, INPUT_2 input2, INPUT_3 input3, INPUT_4 input4, INPUT_5 input5, INPUT_6 input6, INPUT_7 input7, Func<VALUE, INPUT_1, INPUT_2, INPUT_3, INPUT_4, INPUT_5, INPUT_6, INPUT_7, IFutureOutcome> next) =>
+        new FutureOutcome<VALUE>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.Error is not null)
+                    return factory.Error<VALUE>(input.Error);
+
+                var output = await next(input.Result!, input1, input2, input3, input4, input5, input6, input7).Execute();
+
+                if (output.Error is not null)
+                    return factory.Error<VALUE>(output.Error);
+                else
+                    return factory.Success(input.Result!);
+            },
+            factory
+        );
+
+    IFutureOutcome<VALUE> IFutureOutcome<VALUE>.Tee<INPUT_1, INPUT_2, INPUT_3, INPUT_4, INPUT_5, INPUT_6, INPUT_7, INPUT_8>(INPUT_1 input1, INPUT_2 input2, INPUT_3 input3, INPUT_4 input4, INPUT_5 input5, INPUT_6 input6, INPUT_7 input7, INPUT_8 input8, Func<VALUE, INPUT_1, INPUT_2, INPUT_3, INPUT_4, INPUT_5, INPUT_6, INPUT_7, INPUT_8, IFutureOutcome> next) =>
+        new FutureOutcome<VALUE>(
+            async () =>
+            {
+                var input = await LazyInput();
+                if (input.Error is not null)
+                    return factory.Error<VALUE>(input.Error);
+
+                var output = await next(input.Result!, input1, input2, input3, input4, input5, input6, input7, input8).Execute();
+
+                if (output.Error is not null)
+                    return factory.Error<VALUE>(output.Error);
+                else
+                    return factory.Success(input.Result!);
+            },
+            factory
+        );
+
+
+
 }
