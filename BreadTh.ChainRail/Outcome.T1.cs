@@ -59,7 +59,7 @@ internal class Outcome<VALUE> : IOutcome<VALUE>
             onSuccess(Result!);
     }
 
-    VALUE IOutcome<VALUE>.Unify(Func<IError, VALUE> transform) 
+    VALUE IOutcome<VALUE>.Unify(Func<IError, VALUE> transform)
     {
         if(Error is not null)
             return transform(Error);
@@ -67,7 +67,7 @@ internal class Outcome<VALUE> : IOutcome<VALUE>
             return Result!;
     }
 
-    RESULT IOutcome<VALUE>.Unify<RESULT>(Func<VALUE, RESULT> onSuccess, Func<IError, RESULT> onError) 
+    RESULT IOutcome<VALUE>.Unify<RESULT>(Func<VALUE, RESULT> onSuccess, Func<IError, RESULT> onError)
     {
         if(Error is not null)
             return onError(Error);
@@ -90,7 +90,7 @@ internal class Outcome<VALUE> : IOutcome<VALUE>
         else
             return Task.FromResult(onSuccess(Result!));
     }
-    
+
     Task<RESULT> IOutcome<VALUE>.Unify<RESULT>(Func<VALUE, Task<RESULT>> onSuccess, Func<IError, Task<RESULT>> onError)
     {
         if (Error is not null)

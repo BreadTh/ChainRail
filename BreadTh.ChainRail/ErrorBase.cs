@@ -7,7 +7,7 @@ public abstract class ErrorBase : IError
     public string Message { get; init; }
     public List<IError> Inner { get; init; }
 
-    public ErrorBase(string id, string message, List<IError>? inner = null) 
+    public ErrorBase(string id, string message, List<IError>? inner = null)
     {
         Id = id;
         Message = message;

@@ -25,7 +25,7 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
     async Task IFutureOutcomeBase.Execute(Func<Task> onSuccess, Action<IError> onError)
     {
         var result = await LazyInput();
-        await result.Switch(onSuccess, onError);        
+        await result.Switch(onSuccess, onError);
     }
 
     private IFutureOutcome<OUTPUT> InnerThen<OUTPUT>(Func<Task<IOutcome<OUTPUT>>> next) =>
@@ -49,16 +49,16 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
         );
 
 
-    IFutureOutcome<OUTPUT> IFutureOutcomeBase.Then<OUTPUT>(IFutureOutcome<OUTPUT> next) => 
+    IFutureOutcome<OUTPUT> IFutureOutcomeBase.Then<OUTPUT>(IFutureOutcome<OUTPUT> next) =>
         InnerThen(() => next.Execute());
 
-    IFutureOutcome IFutureOutcomeBase.Then(IFutureOutcome next) => 
+    IFutureOutcome IFutureOutcomeBase.Then(IFutureOutcome next) =>
         InnerThen(() => next.Execute());
 
-    IFutureOutcome<OUTPUT> IFutureOutcomeBase.Then<OUTPUT>(Func<IFutureOutcome<OUTPUT>> next) => 
+    IFutureOutcome<OUTPUT> IFutureOutcomeBase.Then<OUTPUT>(Func<IFutureOutcome<OUTPUT>> next) =>
         InnerThen(() => next().Execute());
 
-    IFutureOutcome IFutureOutcomeBase.Then(Func<IFutureOutcome> next) => 
+    IFutureOutcome IFutureOutcomeBase.Then(Func<IFutureOutcome> next) =>
         InnerThen(() => next().Execute());
 
     IFutureOutcome<OUTPUT> IFutureOutcomeBase.Then<OUTPUT>(Func<Task<IOutcome<OUTPUT>>> next) =>
@@ -80,7 +80,7 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
         InnerThen(() => Task.FromResult(factory.Success(next())));
 
     IFutureOutcome IFutureOutcomeBase.Then<OUTPUT>(Action next) =>
-        InnerThen(() => 
+        InnerThen(() =>
         {
             next();
             return Task.FromResult(factory.Success());
@@ -93,8 +93,6 @@ internal abstract class FutureOutcomeBase<OUTCOME, RESULT> : IFutureOutcomeBase
             await next();
             return factory.Success();
         });
-
-
 
     IFutureOutcome IFutureOutcomeBase.ThenInParallel(IEnumerable<IFutureOutcome> next) =>
         new FutureOutcome(

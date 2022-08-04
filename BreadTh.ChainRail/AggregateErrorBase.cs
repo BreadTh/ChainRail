@@ -7,7 +7,7 @@ public abstract class AggregateErrorBase : IError, IAggregateError
     public string Id { get; init; }
     public string Message { get => $"{GetType().Name}: " + string.Join("; ", Inner.Select(x => x.Message)); }
 
-    public AggregateErrorBase(string id, List<IError> inner) 
+    public AggregateErrorBase(string id, List<IError> inner)
     {
         Id = id;
 

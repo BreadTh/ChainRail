@@ -1,5 +1,5 @@
 ﻿namespace BreadTh.ChainRail;
 
-public interface IOutcome : IOutcome<Empty> 
+public interface IOutcome : IOutcome<Empty>
 {
 }

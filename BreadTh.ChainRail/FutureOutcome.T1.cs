@@ -92,15 +92,15 @@ internal class FutureOutcome<VALUE> : FutureOutcomeBase<IOutcome<VALUE>, VALUE>,
         InnerPipe(value => Task.FromResult(factory.Success(next(value))));
 
     IFutureOutcome IFutureOutcome<VALUE>.Then(Action<VALUE> next) =>
-        InnerPipe(value => 
-        { 
+        InnerPipe(value =>
+        {
             next(value);
             return Task.FromResult(factory.Success());
         });
 
 
     IFutureOutcome IFutureOutcome<VALUE>.Then(Func<VALUE, Task> next) =>
-        InnerPipe(value => 
+        InnerPipe(value =>
         {
             next(value);
             return Task.FromResult(factory.Success());
@@ -167,14 +167,14 @@ internal class FutureOutcome<VALUE> : FutureOutcomeBase<IOutcome<VALUE>, VALUE>,
         InnerTee(value => Task.FromResult(factory.Success(next(value))));
 
     IFutureOutcome<VALUE> IFutureOutcome<VALUE>.Tee(Action<VALUE> next) =>
-        InnerTee(value => 
+        InnerTee(value =>
         {
             next(value);
             return Task.FromResult(factory.Success());
         });
 
     IFutureOutcome<VALUE> IFutureOutcome<VALUE>.Tee(Func<VALUE, Task> next) =>
-        InnerTee(value => 
+        InnerTee(value =>
         {
             next(value);
             return Task.FromResult(factory.Success());

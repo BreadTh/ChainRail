@@ -8,7 +8,7 @@ public interface IFutureOutcomeBase
 
     //.Then overload combinations
     //  actual value
-    //      OUTPUT 
+    //      OUTPUT
     //      Nothing/Action      (returns ILazyOutcome instead of IFutureOutcome<T>)
     //      IOutcome<OUTPUT>
     //      IOutcome            (returns ILazyOutcome instead of IFutureOutcome<T>)
