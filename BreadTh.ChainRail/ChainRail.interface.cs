@@ -10,6 +10,7 @@ public interface IChainRail
     IOutcome<VALUE> Error<VALUE>(IError[] errors);
     IOutcome<VALUE> Error<VALUE>(List<IError> errors);
     IFutureOutcome StartChain();
+    IFutureOutcome<VALUE> StartChain<VALUE>(VALUE startValue);
     IOutcome Success();
     IOutcome<VALUE> Success<VALUE>(VALUE result);
 }
